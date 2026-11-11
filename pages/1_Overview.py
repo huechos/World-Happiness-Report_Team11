@@ -4,7 +4,7 @@ import pandas as pd
 st.title("📊 Phân tích theo từng năm độc lập")
 
 # Tạo một selectbox chọn năm ở sidebar hoặc ngay trên trang
-selected_year = st.selectbox("Chọn năm báo cáo:", [2015, 2016, 2017, 2018])
+selected_year = st.selectbox("Chọn năm báo cáo:", [2015, 2016, 2017, 2018, 2019])
 
 # Load dữ liệu tương ứng với năm được chọn
 @st.cache_data

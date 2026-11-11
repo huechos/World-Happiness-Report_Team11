@@ -57,7 +57,7 @@ st.write("---")
 # 5. Thêm phần xem trước dữ liệu nhanh ngay tại trang chủ để tạo điểm nhấn
 st.subheader("📂 Kiểm tra trạng thái dữ liệu nhanh")
 
-selected_year_preview = st.selectbox("Chọn năm dữ liệu muốn xem trước:", [2015, 2016, 2017, 2018])
+selected_year_preview = st.selectbox("Chọn năm dữ liệu muốn xem trước:", [2015, 2016, 2017, 2018, 2019])
 preview_file_path = f"data/{selected_year_preview}.csv"
 
 if os.path.exists(preview_file_path):

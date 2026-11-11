@@ -34,8 +34,9 @@ with col1:
 with col2:
     st.info("""
     **Thông tin nhóm thực hiện:**
+    - **Tên nhóm:** Nhóm 11
     - **Môn học:** Trực quan hóa Dữ liệu
-    - **Lớp:** CNTT 18-01 (Đại học Đại Nam)
+    - **Lớp:** KHMT 18-01 (Đại học Đại Nam)
     - **Công cụ:** Python, Pandas, Plotly, Streamlit
     """)
 
@@ -71,4 +72,4 @@ else:
 
 # Chân trang (Footer)
 st.write("---")
-st.markdown("<p style='text-align: center; color: gray;'>Phát triển bởi Nhóm sinh viên CNTT 18-01 - Đại học Đại Nam | 2026</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>Phát triển bởi Nhóm 11 KHMT 18-01 - Đại học Đại Nam | 2026</p>", unsafe_allow_html=True)

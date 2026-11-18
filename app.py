@@ -1,75 +1,170 @@
-import streamlit as st
 import pandas as pd
-import os
+import plotly.express as px
+import streamlit as st
 
-# 1. Cấu hình trang chủ (Phải đặt ở dòng đầu tiên của file)
+from dashboard_utils import YEARS, apply_theme, load_all_data, summarize_year
+
+
 st.set_page_config(
     page_title="World Happiness Dashboard",
     page_icon="🌍",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+)
+apply_theme()
+
+st.title("🌍 World Happiness Dashboard")
+st.caption("Phân tích hạnh phúc toàn cầu 2015–2019")
+
+data = load_all_data()
+if data.empty:
+    st.error("Không thể tải dữ liệu. Kiểm tra thư mục data.")
+    st.stop()
+
+with st.sidebar:
+    st.header("Bộ lọc")
+    selected_year = st.select_slider("Năm", options=YEARS, value=YEARS[-1])
+    query = st.text_input("Tìm quốc gia", placeholder="Ví dụ: Finland")
+    st.divider()
+    st.caption("Dữ liệu chuẩn hóa và lưu cache trong 1 giờ.")
+
+year_data = summarize_year(data, int(selected_year))
+if query:
+    year_data = year_data[
+        year_data["Country"].str.contains(query, case=False, na=False)
+    ]
+
+top_score = year_data["Happiness Score"].max()
+bottom_score = year_data["Happiness Score"].min()
+average_score = year_data["Happiness Score"].mean()
+top_country = (
+    year_data.loc[year_data["Happiness Score"].idxmax(), "Country"]
+    if not year_data.empty
+    else "—"
 )
 
-# 2. Tiêu đề chính của ứng dụng
-st.title("🌍 Hệ thống Trực quan hóa Dữ liệu: Báo cáo Hạnh phúc Toàn cầu")
-st.markdown("### Đề tài: Phân tích các yếu tố ảnh hưởng đến Chỉ số Hạnh phúc các Quốc gia")
-st.write("---")
+metric_cols = st.columns(4)
+metric_cols[0].metric("Quốc gia cao nhất", top_country)
+metric_cols[1].metric(
+    "Điểm cao nhất", f"{top_score:.3f}" if pd.notna(top_score) else "—"
+)
+metric_cols[2].metric(
+    "Điểm trung bình", f"{average_score:.3f}" if pd.notna(average_score) else "—"
+)
+metric_cols[3].metric(
+    "Điểm thấp nhất", f"{bottom_score:.3f}" if pd.notna(bottom_score) else "—"
+)
 
-# 3. Phần giới thiệu dự án (Introduction)
-col1, col2 = st.columns([2, 1])
+tab_overview, tab_trends, tab_factors = st.tabs(
+    ["📊 Tổng quan", "📈 Xu hướng", "🔎 Yếu tố"]
+)
 
-with col1:
-    st.markdown("""
-    ### 🎯 Giới thiệu chung
-    Chào mừng bạn đến với ứng dụng Dashboard phân tích dữ liệu **World Happiness Report**. 
-    Ứng dụng được thiết kế nhằm giúp người xem khám phá và đánh giá sự chênh lệch về mức độ hạnh phúc giữa các quốc gia, 
-    đồng thời tìm hiểu mối tương quan với các chỉ số kinh tế - xã hội quan trọng như:
-    - **GDP bình quân đầu ngời (GDP per capita)**
-    - **Sự hỗ trợ xã hội (Social support)**
-    - **Tuổi thọ khỏe mạnh (Life Expectancy)**
-    - **Quyền tự do cá nhân (Freedom)**
-    - **Mức độ minh bạch / nhận thức tham nhũng (Perceptions of corruption)**
-    """)
+with tab_overview:
+    chart_col, table_col = st.columns([1.5, 1])
+    top10 = year_data.nlargest(10, "Happiness Score")
 
-with col2:
-    st.info("""
-    **Thông tin nhóm thực hiện:**
-    - **Tên nhóm:** Nhóm 11
-    - **Môn học:** Trực quan hóa Dữ liệu
-    - **Lớp:** KHMT 18-01 (Đại học Đại Nam)
-    - **Công cụ:** Python, Pandas, Plotly, Streamlit
-    """)
+    with chart_col:
+        fig = px.bar(
+            top10.sort_values("Happiness Score"),
+            x="Happiness Score",
+            y="Country",
+            orientation="h",
+            color="Happiness Score",
+            color_continuous_scale="Teal",
+            title=f"Top 10 quốc gia hạnh phúc nhất — {selected_year}",
+        )
+        fig.update_layout(
+            height=430,
+            margin=dict(l=10, r=10, t=50, b=10),
+            coloraxis_showscale=False,
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-st.write("---")
+    with table_col:
+        st.subheader("Bảng xếp hạng")
+        st.dataframe(
+            year_data[["Happiness Rank", "Country", "Happiness Score"]].head(20),
+            use_container_width=True,
+            hide_index=True,
+            height=430,
+        )
 
-# 4. Hướng dẫn sử dụng điều hướng
-st.subheader("🧭 Hướng dẫn điều hướng Dashboard")
-st.markdown("""
-Sử dụng **Thanh điều hướng (Sidebar)** ở bên trái màn hình để di chuyển qua các trang phân tích chi tiết:
-1. **Overview (Tổng quan):** Xem các chỉ số KPI toàn cầu và bảng dữ liệu gốc theo từng năm.
-2. **Trends (Xu hướng & Tương quan):** Khám phá sự thay đổi qua thời gian và mối quan hệ giữa các biến.
-3. **Regional Analysis (Phân tích khu vực):** So sánh điểm số hạnh phúc giữa các châu lục, khu vực khác nhau.
-4. **Key Factors (Yếu tố tác động):** Đào sâu vào các nhóm nhân tố cốt lõi quyết định độ hạnh phúc.
-5. **Advanced Insights (Khám phá nâng cao):** Trải nghiệm giao diện tương tác nâng cao, bộ lọc và các nhận xét kết luận.
-""")
+with tab_trends:
+    trend = (
+        data.groupby("Year", as_index=False)["Happiness Score"]
+        .mean()
+        .rename(columns={"Happiness Score": "Điểm trung bình"})
+    )
+    fig = px.line(
+        trend,
+        x="Year",
+        y="Điểm trung bình",
+        markers=True,
+        title="Điểm hạnh phúc trung bình toàn cầu",
+    )
+    fig.update_layout(height=420)
+    st.plotly_chart(fig, use_container_width=True)
 
-st.write("---")
+    country_options = sorted(data["Country"].dropna().unique())
+    default_country = "Finland" if "Finland" in country_options else country_options[0]
+    country = st.selectbox(
+        "So sánh một quốc gia",
+        country_options,
+        index=country_options.index(default_country),
+    )
+    country_trend = data[data["Country"] == country]
+    fig_country = px.line(
+        country_trend,
+        x="Year",
+        y="Happiness Score",
+        markers=True,
+        title=f"Diễn biến điểm hạnh phúc của {country}",
+    )
+    fig_country.update_layout(height=360)
+    st.plotly_chart(fig_country, use_container_width=True)
 
-# 5. Thêm phần xem trước dữ liệu nhanh ngay tại trang chủ để tạo điểm nhấn
-st.subheader("📂 Kiểm tra trạng thái dữ liệu nhanh")
+with tab_factors:
+    factor = st.selectbox(
+        "Yếu tố phân tích",
+        [
+            "GDP per capita",
+            "Social support",
+            "Life Expectancy",
+            "Freedom",
+            "Generosity",
+            "Perceptions of corruption",
+        ],
+    )
+    scatter_data = data.dropna(subset=[factor, "Happiness Score"])
+    fig = px.scatter(
+        scatter_data,
+        x=factor,
+        y="Happiness Score",
+        color="Year",
+        hover_name="Country",
+        title=f"Mối quan hệ giữa {factor} và điểm hạnh phúc",
+    )
+    fig.update_layout(height=470)
+    st.plotly_chart(fig, use_container_width=True)
 
-selected_year_preview = st.selectbox("Chọn năm dữ liệu muốn xem trước:", [2015, 2016, 2017, 2018, 2019])
-preview_file_path = f"data/{selected_year_preview}.csv"
-
-if os.path.exists(preview_file_path):
-    df_preview = pd.read_csv(preview_file_path)
-    st.success(f"Đã tải thành công file dữ liệu năm {selected_year_preview} ({len(df_preview)} quốc gia, {len(df_preview.columns)} cột).")
-    
-    with st.expander(f"Xem trước 5 dòng đầu tiên của dữ liệu năm {selected_year_preview}"):
-        st.dataframe(df_preview.head(), use_container_width=True)
-else:
-    st.warning(f"⚠️ Chưa tìm thấy file `{preview_file_path}`. Hãy đảm bảo bạn đã chạy file `preprocess.py` để tạo các file dữ liệu sạch trước nhé!")
-
-# Chân trang (Footer)
-st.write("---")
-st.markdown("<p style='text-align: center; color: gray;'>Phát triển bởi Nhóm 11 KHMT 18-01 - Đại học Đại Nam | 2026</p>", unsafe_allow_html=True)
+    correlation = (
+        data[
+            [
+                "Happiness Score",
+                "GDP per capita",
+                "Social support",
+                "Life Expectancy",
+                "Freedom",
+                "Generosity",
+                "Perceptions of corruption",
+            ]
+        ]
+        .corr(numeric_only=True)["Happiness Score"]
+        .drop("Happiness Score")
+        .sort_values(ascending=False)
+    )
+    st.subheader("Tương quan với điểm hạnh phúc")
+    st.dataframe(
+        correlation.rename("Hệ số tương quan").to_frame(),
+        use_container_width=True,
+    )

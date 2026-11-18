@@ -1,18 +1,41 @@
+import plotly.express as px
 import streamlit as st
-import pandas as pd
 
-st.title("📊 Phân tích theo từng năm độc lập")
+from dashboard_utils import YEARS, apply_theme, load_all_data, summarize_year
 
-# Tạo một selectbox chọn năm ở sidebar hoặc ngay trên trang
-selected_year = st.selectbox("Chọn năm báo cáo:", [2015, 2016, 2017, 2018, 2019])
 
-# Load dữ liệu tương ứng với năm được chọn
-@st.cache_data
-def load_data_by_year(year):
-    file_path = f"data/{year}.csv"
-    return pd.read_csv(file_path)
+st.set_page_config(page_title="Tổng quan", page_icon="📊", layout="wide")
+apply_theme()
+st.title("📊 Tổng quan theo năm")
 
-df = load_data_by_year(selected_year)
+data = load_all_data()
+selected_year = st.select_slider("Chọn năm", options=YEARS, value=YEARS[-1])
+year_data = summarize_year(data, int(selected_year))
 
-st.write(f"Đang hiển thị dữ liệu của năm **{selected_year}** (Tổng số quốc gia: {len(df)})")
-st.dataframe(df.head())
+tab_table, tab_distribution = st.tabs(["📋 Dữ liệu", "📦 Phân bố"])
+
+with tab_table:
+    st.caption(f"{len(year_data)} quốc gia trong năm {selected_year}")
+    st.dataframe(
+        year_data.sort_values("Happiness Rank"),
+        use_container_width=True,
+        hide_index=True,
+        height=560,
+    )
+    st.download_button(
+        "Tải CSV",
+        year_data.to_csv(index=False).encode("utf-8"),
+        file_name=f"happiness-{selected_year}.csv",
+        mime="text/csv",
+    )
+
+with tab_distribution:
+    fig = px.histogram(
+        year_data,
+        x="Happiness Score",
+        nbins=20,
+        marginal="box",
+        title=f"Phân bố điểm hạnh phúc — {selected_year}",
+    )
+    fig.update_layout(height=500)
+    st.plotly_chart(fig, use_container_width=True)

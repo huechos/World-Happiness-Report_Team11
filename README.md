@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # World Happiness Dashboard - Nhóm 11
 
 Ứng dụng dashboard trực quan hóa dữ liệu **World Happiness Report** bằng

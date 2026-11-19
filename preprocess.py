@@ -1,7 +1,94 @@
-import pandas as pd
 import os
+from pathlib import Path
 
-def clean_single_file(filepath, year):
+import pandas as pd
+
+
+REGION_REFERENCE_YEARS = (2015, 2016)
+COUNTRY_NAME_ALIASES = {
+    'Hong Kong S.A.R., China': 'Hong Kong',
+    'Taiwan Province of China': 'Taiwan',
+    'Northern Cyprus': 'North Cyprus',
+    'Trinidad & Tobago': 'Trinidad and Tobago',
+    'North Macedonia': 'Macedonia',
+}
+REGION_OVERRIDES = {
+    'Gambia': 'Sub-Saharan Africa',
+}
+
+
+def build_region_mapping(data_dir):
+    """Tạo mapping quốc gia-vùng từ các bảng tham chiếu có sẵn."""
+    data_dir = Path(data_dir)
+    region_mapping = {}
+
+    for year in REGION_REFERENCE_YEARS:
+        filepath = data_dir / f'{year}.csv'
+        if not filepath.exists():
+            continue
+
+        reference_df = pd.read_csv(filepath)
+        country_column = next(
+            (column for column in ('Country', 'Country or region')
+             if column in reference_df.columns),
+            None,
+        )
+        if country_column is None or 'Region' not in reference_df.columns:
+            continue
+
+        reference_rows = reference_df[[country_column, 'Region']].dropna()
+        for country, region in reference_rows.itertuples(index=False, name=None):
+            country = str(country).strip()
+            region = str(region).strip()
+            existing_region = region_mapping.get(country)
+            if existing_region is not None and existing_region != region:
+                raise ValueError(
+                    f"Quốc gia '{country}' có Region không thống nhất: "
+                    f"'{existing_region}' và '{region}'."
+                )
+            region_mapping[country] = region
+
+    if not region_mapping:
+        raise ValueError(
+            f"Không tìm thấy bảng tham chiếu có cột Country và Region trong "
+            f"'{data_dir}'."
+        )
+
+    for country, reference_country in COUNTRY_NAME_ALIASES.items():
+        if reference_country in region_mapping:
+            region_mapping[country] = region_mapping[reference_country]
+    region_mapping.update(REGION_OVERRIDES)
+    return region_mapping
+
+
+def add_region_column(df, region_mapping):
+    """Bổ sung Region còn thiếu dựa trên tên quốc gia."""
+    if 'Country' not in df.columns:
+        raise ValueError("Không thể bổ sung Region: bảng không có cột Country.")
+
+    mapped_regions = (
+        df['Country'].astype('string').str.strip().map(region_mapping)
+    )
+    if 'Region' in df.columns:
+        existing_regions = (
+            df['Region'].astype('string').str.strip().replace('', pd.NA)
+        )
+        df['Region'] = existing_regions.fillna(mapped_regions)
+    else:
+        df.insert(df.columns.get_loc('Country') + 1, 'Region', mapped_regions)
+
+    unmapped_countries = (
+        df.loc[df['Region'].isna() & df['Country'].notna(), 'Country']
+        .drop_duplicates()
+        .tolist()
+    )
+    if unmapped_countries:
+        print(f"Chưa tìm thấy Region cho các quốc gia: {unmapped_countries}")
+
+    return df
+
+
+def clean_single_file(filepath, year, region_mapping=None):
     """Hàm làm sạch cho từng file CSV theo năm"""
     if not os.path.exists(filepath):
         print(f"Không tìm thấy file: {filepath}")
@@ -29,6 +116,9 @@ def clean_single_file(filepath, year):
     }
     
     df = df.rename(columns=column_mapping)
+    if region_mapping is None:
+        region_mapping = build_region_mapping(Path(filepath).parent)
+    df = add_region_column(df, region_mapping)
     
     # Xử lý giá trị thiếu (nếu có) trên từng bảng
     numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
@@ -39,10 +129,11 @@ def clean_single_file(filepath, year):
 if __name__ == "__main__":
     # Danh sách các năm cần xử lý độc lập
     years = [2015, 2016, 2017, 2018, 2019]
+    region_mapping = build_region_mapping("data")
     
     for y in years:
-        path = f"data/{y}.csv"
-        cleaned_df = clean_single_file(path, y)
+        path = Path("data") / f"{y}.csv"
+        cleaned_df = clean_single_file(path, y, region_mapping)
         
         if cleaned_df is not None:
             # Lưu ra file sạch riêng cho từng năm

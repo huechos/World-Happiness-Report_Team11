@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    html, body, #globe {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    #map-error {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 1;
+      color: #b91c1c;
+      font: 14px sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="globe"></div>
+  <div id="map-error" role="alert"></div>
+  <script>
+    const globe = document.getElementById("globe");
+    const mapError = document.getElementById("map-error");
+    let listenersAttached = false;
+    let lockingRotation = false;
+    let rotationLockPending = false;
+    const LOCKED_ROTATION_LATITUDE = 0;
+
+    function postStreamlitMessage(type, payload) {
+      window.parent.postMessage(
+        { isStreamlitMessage: true, type, ...payload },
+        "*",
+      );
+    }
+
+    function lockVerticalRotation(relayout) {
+      const rotation = relayout["geo.projection.rotation"];
+      const latitude = relayout["geo.projection.rotation.lat"]
+        ?? (rotation && rotation.lat);
+      if (typeof latitude !== "number" || latitude === LOCKED_ROTATION_LATITUDE) {
+        return;
+      }
+
+      if (lockingRotation) {
+        rotationLockPending = true;
+        return;
+      }
+
+      applyLockedRotation();
+    }
+
+    function applyLockedRotation() {
+      lockingRotation = true;
+      Plotly.relayout(globe, {
+        "geo.projection.rotation.lat": LOCKED_ROTATION_LATITUDE,
+      }).catch((error) => {
+        mapError.textContent = `Không thể khóa xoay dọc: ${error.message}`;
+        console.error(error);
+      }).finally(() => {
+        lockingRotation = false;
+        if (rotationLockPending) {
+          rotationLockPending = false;
+          applyLockedRotation();
+        }
+      });
+    }
+
+    function attachListeners() {
+      if (listenersAttached) return;
+      listenersAttached = true;
+
+      globe.on("plotly_click", (event) => {
+        const point = event.points && event.points[0];
+        const customData = point && point.customdata;
+        const region = Array.isArray(customData) ? customData[0] : customData;
+        if (typeof region === "string") {
+          postStreamlitMessage("streamlit:setComponentValue", {
+            value: { region },
+            dataType: "json",
+          });
+        }
+      });
+
+      globe.on("plotly_relayouting", lockVerticalRotation);
+      globe.on("plotly_relayout", lockVerticalRotation);
+    }
+
+    window.addEventListener("message", async (event) => {
+      if (event.source !== window.parent) return;
+      if (!event.data || event.data.type !== "streamlit:render") return;
+      if (!window.Plotly) {
+        mapError.textContent = "Không tải được Plotly.js. Hãy kiểm tra kết nối Internet.";
+        return;
+      }
+
+      const args = event.data.args;
+      const figure = JSON.parse(args.figure_json);
+      figure.layout.height = args.height;
+      figure.layout.autosize = true;
+      try {
+        await Plotly.react(globe, figure.data, figure.layout, {
+          responsive: true,
+          displaylogo: false,
+          scrollZoom: false,
+        });
+        mapError.textContent = "";
+        attachListeners();
+        postStreamlitMessage("streamlit:setFrameHeight", {
+          height: args.height,
+        });
+      } catch (error) {
+        mapError.textContent = `Không thể hiển thị quả địa cầu: ${error.message}`;
+        console.error(error);
+      }
+    });
+
+    postStreamlitMessage("streamlit:componentReady", { apiVersion: 1 });
+  </script>
+</body>
+</html>

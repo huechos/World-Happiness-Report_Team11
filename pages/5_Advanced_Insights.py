@@ -273,32 +273,14 @@ def country_display_name(country):
 
 
 @st.cache_data(ttl=900)
-def filter_data(years, score_min, score_max, country_query):
+def filter_data(years, score_min, score_max, selected_countries):
     data = load_all_data()
     filtered = data[
         data["Year"].isin(years)
         & data["Happiness Score"].between(score_min, score_max)
     ]
-    if country_query:
-        normalized_query = normalize_country_name(country_query)
-        english_matches = filtered["Country"].map(
-            lambda country: (
-                normalize_country_name(country) == normalized_query
-                if len(normalized_query) < 3
-                else normalized_query in normalize_country_name(country)
-            )
-        )
-        localized_matches = set()
-        for localized_name, english_names in COUNTRY_ALIASES.items():
-            normalized_localized_name = normalize_country_name(localized_name)
-            if normalized_query == normalized_localized_name or (
-                len(normalized_query) >= 3
-                and normalized_query in normalized_localized_name
-            ):
-                localized_matches.update(english_names)
-        if localized_matches:
-            english_matches |= filtered["Country"].isin(localized_matches)
-        filtered = filtered[english_matches]
+    if selected_countries:
+        filtered = filtered[filtered["Country"].isin(selected_countries)]
     return filtered
 
 
@@ -320,16 +302,19 @@ with st.sidebar:
         value=(score_min, score_max),
         step=0.1,
     )
-    country_query = st.text_input(
-        "Tìm quốc gia",
-        placeholder="Nhập tên quốc gia",
+    selected_filter_countries = st.multiselect(
+        "Chọn quốc gia",
+        sorted(data["Country"].dropna().unique()),
+        default=[],
+        format_func=country_display_name,
+        placeholder="Tìm và chọn nhiều quốc gia",
     )
 
 filtered = filter_data(
     tuple(selected_years),
     score_range[0],
     score_range[1],
-    country_query.strip(),
+    tuple(selected_filter_countries),
 )
 
 if filtered.empty:
@@ -376,21 +361,108 @@ with tab_explore:
         fig.update_layout(height=460)
         st.plotly_chart(fig, use_container_width=True)
 
+        chart_data = filtered[
+            ["Country", "Year", "Happiness Score", selected_factor]
+        ].dropna()
+        st.markdown("**Nhận xét về biểu đồ**")
+        if len(chart_data) < 2:
+            st.info("Cần ít nhất hai quan sát có đủ dữ liệu để phân tích biểu đồ.")
+        else:
+            correlation_value = chart_data[
+                ["Happiness Score", selected_factor]
+            ].corr().iloc[0, 1]
+
+            if pd.isna(correlation_value):
+                st.info(
+                    "Chưa thể xác định tương quan vì một trong hai chỉ số "
+                    "không có độ biến thiên."
+                )
+            else:
+                if correlation_value >= 0.7:
+                    relationship = "tương quan thuận mạnh"
+                elif correlation_value >= 0.4:
+                    relationship = "tương quan thuận vừa"
+                elif correlation_value > 0.2:
+                    relationship = "tương quan thuận yếu"
+                elif correlation_value >= -0.2:
+                    relationship = "hầu như không có tương quan tuyến tính rõ ràng"
+                elif correlation_value >= -0.4:
+                    relationship = "tương quan nghịch yếu"
+                elif correlation_value > -0.7:
+                    relationship = "tương quan nghịch vừa"
+                else:
+                    relationship = "tương quan nghịch mạnh"
+
+                highest_row = chart_data.loc[
+                    chart_data["Happiness Score"].idxmax()
+                ]
+                lowest_row = chart_data.loc[
+                    chart_data["Happiness Score"].idxmin()
+                ]
+                st.markdown(
+                    f"- **Mối liên hệ:** Điểm hạnh phúc và **{selected_factor}** có "
+                    f"{relationship} (r = **{correlation_value:.3f}**). Đây là tương "
+                    "quan, không khẳng định yếu tố này trực tiếp gây ra thay đổi."
+                )
+                st.markdown(
+                    f"- **Điểm cao nhất:** "
+                    f"{country_display_name(highest_row['Country'])} "
+                    f"({int(highest_row['Year'])}), "
+                    f"**{highest_row['Happiness Score']:.3f}**."
+                )
+                st.markdown(
+                    f"- **Điểm thấp nhất:** "
+                    f"{country_display_name(lowest_row['Country'])} "
+                    f"({int(lowest_row['Year'])}), "
+                    f"**{lowest_row['Happiness Score']:.3f}**."
+                )
+                st.markdown(
+                    f"- **Phạm vi dữ liệu:** {len(chart_data)} quan sát; "
+                    f"điểm hạnh phúc trung bình "
+                    f"**{chart_data['Happiness Score'].mean():.3f}**, "
+                    f"{selected_factor} trung bình "
+                    f"**{chart_data[selected_factor].mean():.3f}** "
+                    f"(dao động {chart_data[selected_factor].min():.3f}–"
+                    f"{chart_data[selected_factor].max():.3f})."
+                )
+
     with ranking_col:
-        st.subheader("Top quốc gia")
-        top_countries = filtered.nlargest(10, "Happiness Score").sort_values(
-            "Happiness Score"
+        latest_year = int(filtered["Year"].max())
+        latest_data = filtered[
+            (filtered["Year"] == latest_year)
+            & filtered["Happiness Score"].notna()
+        ]
+        top_countries = latest_data.nlargest(10, "Happiness Score").copy()
+
+        top_countries["Hạng"] = range(1, len(top_countries) + 1)
+        top_countries["Quốc gia"] = top_countries["Country"].map(
+            country_display_name
         )
-        ranking_fig = px.bar(
-            top_countries,
-            x="Happiness Score",
-            y="Country",
-            color="Year",
-            orientation="h",
-            title="10 quốc gia có điểm cao nhất",
+        top_countries["Năm"] = latest_year
+        top_table = top_countries[
+            [
+                "Hạng",
+                "Quốc gia",
+                "Năm",
+                "Happiness Score",
+            ]
+        ].rename(columns={"Happiness Score": "Điểm hạnh phúc"})
+
+        top_table["Điểm hạnh phúc"] = top_table["Điểm hạnh phúc"].map(
+            lambda value: f"{value:.3f}"
         )
-        ranking_fig.update_layout(height=460)
-        st.plotly_chart(ranking_fig, use_container_width=True)
+
+        st.subheader("Top 10 quốc gia")
+        st.caption(
+            f"Các quốc gia có điểm cao nhất năm {latest_year} "
+            "trong phạm vi bộ lọc."
+        )
+        st.dataframe(
+            top_table,
+            hide_index=True,
+            use_container_width=True,
+            height=380,
+        )
 
 with tab_compare:
     available_countries = sorted(filtered["Country"].dropna().unique())
@@ -419,6 +491,42 @@ with tab_compare:
         )
         fig.update_layout(height=440)
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("**Nhận xét biểu đồ so sánh**")
+        comparison_data = comparison.dropna(
+            subset=["Year", "Happiness Score"]
+        ).sort_values("Year")
+        for country, country_data in comparison_data.groupby("Country"):
+            first = country_data.iloc[0]
+            last = country_data.iloc[-1]
+            if len(country_data) < 2:
+                st.markdown(
+                    f"- **{country_display_name(country)}:** chỉ có dữ liệu năm "
+                    f"{int(first['Year'])}, chưa đủ để nhận xét xu hướng."
+                )
+                continue
+
+            change = last["Happiness Score"] - first["Happiness Score"]
+            if change > 0.05:
+                trend = "tăng"
+            elif change < -0.05:
+                trend = "giảm"
+            else:
+                trend = "gần như ổn định"
+            highest = country_data.loc[
+                country_data["Happiness Score"].idxmax()
+            ]
+            lowest = country_data.loc[
+                country_data["Happiness Score"].idxmin()
+            ]
+            st.markdown(
+                f"- **{country_display_name(country)}:** điểm {trend} "
+                f"{abs(change):.3f} từ {int(first['Year'])} "
+                f"({first['Happiness Score']:.3f}) đến {int(last['Year'])} "
+                f"({last['Happiness Score']:.3f}); cao nhất "
+                f"{highest['Happiness Score']:.3f} năm {int(highest['Year'])}, "
+                f"thấp nhất {lowest['Happiness Score']:.3f} năm "
+                f"{int(lowest['Year'])}."
+            )
     else:
         st.info("Chọn ít nhất một quốc gia để xem biểu đồ so sánh.")
 
@@ -435,6 +543,55 @@ with tab_factors:
     )
     fig.update_layout(height=440)
     st.plotly_chart(fig, use_container_width=True)
+    st.markdown(f"**Nhận xét biểu đồ: {factor} và điểm hạnh phúc**")
+    if len(factor_data) < 2:
+        st.info("Cần ít nhất hai quan sát có đủ dữ liệu để phân tích biểu đồ.")
+    else:
+        factor_correlation = factor_data[
+            [factor, "Happiness Score"]
+        ].corr().iloc[0, 1]
+        if pd.isna(factor_correlation):
+            st.info(
+                "Chưa thể xác định tương quan vì một trong hai chỉ số "
+                "không có độ biến thiên."
+            )
+        else:
+            if factor_correlation >= 0.7:
+                relationship = "tương quan thuận mạnh"
+            elif factor_correlation >= 0.4:
+                relationship = "tương quan thuận vừa"
+            elif factor_correlation > 0.2:
+                relationship = "tương quan thuận yếu"
+            elif factor_correlation >= -0.2:
+                relationship = "hầu như không có tương quan tuyến tính rõ ràng"
+            elif factor_correlation >= -0.4:
+                relationship = "tương quan nghịch yếu"
+            elif factor_correlation > -0.7:
+                relationship = "tương quan nghịch vừa"
+            else:
+                relationship = "tương quan nghịch mạnh"
+
+            highest_factor = factor_data.loc[factor_data[factor].idxmax()]
+            lowest_factor = factor_data.loc[factor_data[factor].idxmin()]
+            st.markdown(
+                f"- **Mối liên hệ:** {factor} và điểm hạnh phúc có "
+                f"{relationship} (r = **{factor_correlation:.3f}**). "
+                "Tương quan không đồng nghĩa với quan hệ nhân quả."
+            )
+            st.markdown(
+                f"- **Giá trị yếu tố cao nhất:** "
+                f"{country_display_name(highest_factor['Country'])} "
+                f"({int(highest_factor['Year'])}), {factor} = "
+                f"**{highest_factor[factor]:.3f}**, điểm hạnh phúc "
+                f"**{highest_factor['Happiness Score']:.3f}**."
+            )
+            st.markdown(
+                f"- **Giá trị yếu tố thấp nhất:** "
+                f"{country_display_name(lowest_factor['Country'])} "
+                f"({int(lowest_factor['Year'])}), {factor} = "
+                f"**{lowest_factor[factor]:.3f}**, điểm hạnh phúc "
+                f"**{lowest_factor['Happiness Score']:.3f}**."
+            )
 
     correlation = (
         filtered[["Happiness Score"] + factor_options]
@@ -453,3 +610,34 @@ with tab_factors:
     )
     correlation_fig.update_layout(height=360)
     st.plotly_chart(correlation_fig, use_container_width=True)
+    st.markdown("**Nhận xét biểu đồ tương quan**")
+    valid_correlations = correlation.dropna(subset=["Hệ số tương quan"])
+    if valid_correlations.empty:
+        st.info("Chưa đủ dữ liệu để so sánh tương quan giữa các yếu tố.")
+    else:
+        strongest = valid_correlations.loc[
+            valid_correlations["Hệ số tương quan"].abs().idxmax()
+        ]
+        if strongest["Hệ số tương quan"] > 0:
+            direction = "thuận"
+        elif strongest["Hệ số tương quan"] < 0:
+            direction = "nghịch"
+        else:
+            direction = "không có"
+        st.markdown(
+            f"- Yếu tố có tương quan mạnh nhất theo trị tuyệt đối là "
+            f"**{strongest['Yếu tố']}** ({direction}, "
+            f"r = **{strongest['Hệ số tương quan']:.3f}**)."
+        )
+        positive = valid_correlations[
+            valid_correlations["Hệ số tương quan"] > 0
+        ]
+        negative = valid_correlations[
+            valid_correlations["Hệ số tương quan"] < 0
+        ]
+        st.markdown(
+            f"- Trong {len(valid_correlations)} yếu tố, có "
+            f"**{len(positive)}** yếu tố tương quan thuận và "
+            f"**{len(negative)}** yếu tố tương quan nghịch với điểm hạnh phúc. "
+            "Kết quả mô tả mối liên hệ trong dữ liệu, không chứng minh nguyên nhân."
+        )

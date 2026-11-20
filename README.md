@@ -41,6 +41,7 @@ python preprocess.py
 - **Trends (`pages/2_Trends.py`)**:
   - So sánh trung bình điểm hạnh phúc, GDP bình quân đầu người và tuổi thọ
     khỏe mạnh theo năm.
+  - Xem area chart điểm hạnh phúc trung bình qua các năm.
   - Xem scatter plot giữa điểm hạnh phúc và GDP hoặc tuổi thọ, lọc theo năm,
     xem hệ số tương quan Pearson.
   - Tên quốc gia và năm được hiển thị khi rê chuột lên điểm dữ liệu.

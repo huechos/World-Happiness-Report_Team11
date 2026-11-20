@@ -115,6 +115,22 @@ trend_figure.for_each_annotation(
 )
 st.plotly_chart(trend_figure, use_container_width=True)
 
+st.subheader("Biểu đồ vùng điểm hạnh phúc")
+happiness_area = px.area(
+    yearly_means,
+    x="Year",
+    y="Happiness Score",
+    labels={
+        "Year": "Năm",
+        "Happiness Score": "Điểm hạnh phúc trung bình",
+    },
+    title="Điểm hạnh phúc trung bình qua các năm",
+    color_discrete_sequence=["#4E79A7"],
+)
+happiness_area.update_xaxes(dtick=1)
+happiness_area.update_layout(height=360, margin={"t": 70, "b": 35, "l": 35, "r": 20})
+st.plotly_chart(happiness_area, use_container_width=True)
+
 first_year, latest_year = years[0], years[-1]
 first_averages = yearly_means.set_index("Year").loc[first_year]
 latest_averages = yearly_means.set_index("Year").loc[latest_year]

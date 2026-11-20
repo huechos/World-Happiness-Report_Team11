@@ -50,7 +50,7 @@ if selected_region not in regions:
 
 st.subheader("Chọn khu vực trên quả địa cầu")
 st.caption(
-    "Kéo ngang để xoay quả địa cầu; kéo dọc đã bị khóa. "
+    "Kéo ngang hoặc dọc để xoay quả địa cầu. "
     "Bấm vào một quốc gia để xem danh sách các quốc gia cùng khu vực."
 )
 

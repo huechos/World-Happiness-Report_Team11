@@ -27,47 +27,12 @@
     const globe = document.getElementById("globe");
     const mapError = document.getElementById("map-error");
     let listenersAttached = false;
-    let lockingRotation = false;
-    let rotationLockPending = false;
-    const LOCKED_ROTATION_LATITUDE = 0;
 
     function postStreamlitMessage(type, payload) {
       window.parent.postMessage(
         { isStreamlitMessage: true, type, ...payload },
         "*",
       );
-    }
-
-    function lockVerticalRotation(relayout) {
-      const rotation = relayout["geo.projection.rotation"];
-      const latitude = relayout["geo.projection.rotation.lat"]
-        ?? (rotation && rotation.lat);
-      if (typeof latitude !== "number" || latitude === LOCKED_ROTATION_LATITUDE) {
-        return;
-      }
-
-      if (lockingRotation) {
-        rotationLockPending = true;
-        return;
-      }
-
-      applyLockedRotation();
-    }
-
-    function applyLockedRotation() {
-      lockingRotation = true;
-      Plotly.relayout(globe, {
-        "geo.projection.rotation.lat": LOCKED_ROTATION_LATITUDE,
-      }).catch((error) => {
-        mapError.textContent = `Không thể khóa xoay dọc: ${error.message}`;
-        console.error(error);
-      }).finally(() => {
-        lockingRotation = false;
-        if (rotationLockPending) {
-          rotationLockPending = false;
-          applyLockedRotation();
-        }
-      });
     }
 
     function attachListeners() {
@@ -85,9 +50,6 @@
           });
         }
       });
-
-      globe.on("plotly_relayouting", lockVerticalRotation);
-      globe.on("plotly_relayout", lockVerticalRotation);
     }
 
     window.addEventListener("message", async (event) => {

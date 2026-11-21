@@ -48,22 +48,6 @@ python preprocess.py
 Các trang Regional Analysis, Key Factors và Advanced Insights hiện chưa có
 nội dung triển khai.
 
-## Tài liệu báo cáo LaTeX
-
-Mã nguồn template báo cáo thực tập tốt nghiệp được đặt trong thư mục
-[`report/`](/C:/Users/caova/BTLTQHDL/World-Happiness-Report_Team11/report).
-Template có thể dùng để viết báo cáo cho đề tài World Happiness Report.
-
-```powershell
-cd report
-latexmk -xelatex main.tex
-```
-
-Các thông tin cá nhân và tên báo cáo được chỉnh trong
-[`report/settings.tex`](/C:/Users/caova/BTLTQHDL/World-Happiness-Report_Team11/report/settings.tex).
-Nội dung chương nằm trong `report/frontmatter/`, `report/chapters/` và
-`report/backmatter/`; hình ảnh đặt trong `report/images/`.
-
 ## Cấu trúc dự án
 
 ```text

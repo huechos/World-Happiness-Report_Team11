@@ -1,3 +1,9 @@
+"""Các tiện ích dùng chung cho dashboard.
+
+Module này quản lý đường dẫn dữ liệu, chuẩn hóa tên cột, nạp dữ liệu
+qua nhiều năm và áp dụng giao diện CSS chung cho Streamlit.
+"""
+
 from pathlib import Path
 
 import pandas as pd
@@ -26,6 +32,7 @@ COLUMN_ALIASES = {
 
 @st.cache_data(ttl=3600)
 def load_all_data() -> pd.DataFrame:
+    """Đọc dữ liệu tất cả năm, chuẩn hóa cấu trúc và loại trùng lặp."""
     frames = []
     core_columns = [
         "Country", "Region", "Happiness Rank", "Happiness Score",
@@ -62,10 +69,12 @@ def load_all_data() -> pd.DataFrame:
 
 @st.cache_data(ttl=3600)
 def summarize_year(data: pd.DataFrame, year: int) -> pd.DataFrame:
+    """Trả về bản sao các dòng dữ liệu thuộc một năm cụ thể."""
     return data.loc[data["Year"] == year].copy()
 
 
 def apply_theme():
+    """Áp dụng màu sắc và kiểu bố cục dùng chung cho các trang."""
     st.markdown(
         """
         <style>

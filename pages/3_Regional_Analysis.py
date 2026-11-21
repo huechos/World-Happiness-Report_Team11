@@ -1,3 +1,9 @@
+"""Trang phân tích so sánh giữa các khu vực.
+
+Hỗ trợ lọc theo năm và khu vực, tương tác địa cầu, biểu đồ tổng hợp
+và so sánh điểm hạnh phúc của nhiều quốc gia.
+"""
+
 import json
 
 import plotly.express as px
@@ -69,6 +75,7 @@ with region_col:
     )
 
 filtered = data.copy()
+# Áp dụng bộ lọc năm và danh sách khu vực theo lựa chọn của người dùng.
 if selected_year != "Tất cả năm":
     filtered = filtered.loc[filtered["Year"] == selected_year]
 if selected_regions:
@@ -155,6 +162,7 @@ if isinstance(globe_selection, dict):
             st.rerun()
 
 scored = filtered.dropna(subset=["Region", "Happiness Score"])
+# Tổng hợp điểm trung bình và số quốc gia duy nhất cho mỗi khu vực.
 region_summary = (
     scored.groupby("Region", as_index=False)
     .agg(
@@ -211,6 +219,7 @@ count_chart.update_layout(height=460, showlegend=False, yaxis_title="")
 st.plotly_chart(count_chart, use_container_width=True)
 
 st.subheader("So sánh nhiều quốc gia")
+# Cho phép chọn ít nhất hai quốc gia để vẽ đường thay đổi theo thời gian.
 available_countries = sorted(data["Country"].dropna().unique().tolist())
 selected_countries = st.multiselect(
     "Chọn các quốc gia muốn so sánh",

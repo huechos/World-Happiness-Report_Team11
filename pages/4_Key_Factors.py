@@ -1,3 +1,9 @@
+"""Trang phân tích các yếu tố liên quan đến hạnh phúc.
+
+Tính ma trận tương quan, biểu đồ tương quan với điểm hạnh phúc
+và pairplot để quan sát mối quan hệ giữa nhiều chỉ số.
+"""
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -74,6 +80,7 @@ factor_labels = {
 }
 
 st.subheader("Ma trận tương quan")
+# Loại bỏ cột hoàn toàn rỗng trước khi tính hệ số tương quan Pearson.
 corr_data = filtered[factor_columns].dropna(axis=1, how="all")
 if len(corr_data.columns) < 2:
     st.info("Không đủ chỉ số có dữ liệu để tính ma trận tương quan.")
@@ -181,6 +188,7 @@ if "Happiness Score" in filtered:
         )
 
 st.subheader("Pairplot các yếu tố")
+# Cho phép người dùng chọn nhiều chỉ số để quan sát ma trận scatter.
 selected_factors = st.multiselect(
     "Chọn các chỉ số đưa vào Pairplot (ít nhất 2)",
     options=factor_columns,

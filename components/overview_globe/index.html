@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Component HTML tùy chỉnh hiển thị quả địa cầu Plotly trong Streamlit. -->
 <html>
 <head>
   <meta charset="utf-8">
@@ -24,12 +25,14 @@
   <div id="globe"></div>
   <div id="map-error" role="alert"></div>
   <script>
+    // Đối tượng này lưu cấu hình render và lựa chọn đang có của component.
     const globe = document.getElementById("globe");
     const mapError = document.getElementById("map-error");
     let listenersAttached = false;
     let componentArgs = {};
 
     function postStreamlitMessage(type, payload) {
+      // Gửi sự kiện và dữ liệu giữa frontend địa cầu và ứng dụng Streamlit.
       window.parent.postMessage(
         { isStreamlitMessage: true, type, ...payload },
         "*",
@@ -37,10 +40,12 @@
     }
 
     function attachListeners() {
+      // Gắn sự kiện click một lần để tránh đăng ký trùng lặp khi component rerender.
       if (listenersAttached) return;
       listenersAttached = true;
 
       globe.on("plotly_click", (event) => {
+        // Lấy khu vực của quốc gia được click từ dữ liệu customData của Plotly.
         const point = event.points && event.points[0];
         const customData = point && point.customdata;
         const region = Array.isArray(customData) ? customData[0] : customData;

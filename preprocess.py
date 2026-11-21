@@ -1,3 +1,9 @@
+"""Tiền xử lý dữ liệu World Happiness Report.
+
+Chuẩn hóa tên quốc gia và tên cột, bổ sung thông tin khu vực,
+điền giá trị thiếu cho dữ liệu số và làm sạch từng file theo năm.
+"""
+
 import os
 from pathlib import Path
 

@@ -1,3 +1,9 @@
+"""Trang chủ của dashboard World Happiness Report.
+
+Khởi tạo giao diện chung, tải dữ liệu tổng quan, hiển thị số liệu nhanh
+và cung cấp liên kết điều hướng đến các trang phân tích.
+"""
+
 import pandas as pd
 import streamlit as st
 
@@ -12,6 +18,7 @@ st.set_page_config(
 )
 apply_theme()
 
+# CSS tùy chỉnh tạo giao diện banner, thẻ điều hướng và phần chân trang.
 st.markdown(
     """
     <style>
@@ -145,6 +152,7 @@ data = load_all_data()
 if data.empty:
     st.warning("Chưa có dữ liệu để tạo phần tổng quan. Hãy kiểm tra thư mục data.")
 else:
+    # Tổng hợp số liệu từ năm mới nhất để hiển thị trong hàng metric.
     latest_year = int(data["Year"].max())
     latest_data = data.loc[data["Year"] == latest_year]
     latest_score = latest_data["Happiness Score"].mean()
@@ -207,6 +215,7 @@ navigation_cards = [
     ),
 ]
 
+# Tạo thẻ điều hướng theo từng nhóm ba cột.
 for row_start in range(0, len(navigation_cards), 3):
     columns = st.columns(3)
     for column, card in zip(columns, navigation_cards[row_start : row_start + 3]):

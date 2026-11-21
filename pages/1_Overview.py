@@ -1,3 +1,9 @@
+"""Trang phân tích tổng quan theo từng năm.
+
+Cho phép chọn năm, tương tác trên quả địa cầu và lọc danh sách quốc gia
+theo khu vực được chọn.
+"""
+
 import json
 from pathlib import Path
 
@@ -25,10 +31,12 @@ REGION_COLORS = {
 
 
 def load_data_by_year(year):
+    """Đọc dữ liệu một năm cụ thể từ thư mục data."""
     return pd.read_csv(DATA_DIR / f"{year}.csv")
 
 
 def clear_region_selection():
+    """Xóa khu vực đang chọn và buộc component địa cầu được tạo lại."""
     st.session_state["overview_selected_region"] = None
     st.session_state["overview_globe_generation"] += 1
 
@@ -37,6 +45,7 @@ st.title("📊 Phân tích theo từng năm độc lập")
 selected_year = st.selectbox("Chọn năm báo cáo:", YEARS)
 df = load_data_by_year(selected_year)
 
+# Lưu khu vực đang chọn trong session để giữ trạng thái khi Streamlit rerun.
 if "overview_selected_region" not in st.session_state:
     st.session_state["overview_selected_region"] = None
 if "overview_globe_generation" not in st.session_state:
@@ -55,6 +64,7 @@ st.caption(
 )
 
 map_data = df.dropna(subset=["Country", "Region"])
+# Cấu hình bản đồ choropleth dạng quả địa cầu trực giao.
 globe = px.choropleth(
     map_data,
     locations="Country",

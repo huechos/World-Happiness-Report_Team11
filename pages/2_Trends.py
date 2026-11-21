@@ -1,3 +1,9 @@
+"""Trang theo dõi xu hướng và tương quan các chỉ số hạnh phúc.
+
+Nạp dữ liệu qua nhiều năm, tạo biểu đồ trung bình, biến động điểm hạnh phúc
+và phân tán theo các chỉ số được chọn.
+"""
+
 from pathlib import Path
 import re
 
@@ -32,6 +38,7 @@ st.markdown(
 
 @st.cache_data
 def load_all_years(data_dir: str) -> pd.DataFrame:
+    """Nạp và chuẩn hóa các file CSV theo năm thành một DataFrame duy nhất."""
     data_path = Path(data_dir)
     year_files = sorted(
         (
@@ -82,6 +89,7 @@ if not years:
     st.stop()
 
 st.subheader("Xu hướng trung bình theo năm")
+# Gom dữ liệu theo năm để tính giá trị trung bình của từng chỉ số.
 yearly_means = data.groupby("Year", as_index=False)[list(METRIC_LABELS)].mean()
 yearly_means_by_year = yearly_means.set_index("Year")
 trend_data = yearly_means.melt(
@@ -141,6 +149,7 @@ st.info(
 )
 
 st.subheader("Biểu đồ vùng điểm hạnh phúc")
+# Biểu đồ vùng nhấn mạnh mức thay đổi điểm hạnh phúc trung bình qua từng năm.
 happiness_area = px.area(
     yearly_means,
     x="Year",
@@ -234,6 +243,7 @@ st.info(
 )
 
 st.subheader("Tương quan giữa các chỉ số")
+# Cho phép người dùng chọn trục X và năm trước khi vẽ scatter plot.
 control_col, year_col = st.columns(2)
 with control_col:
     x_metric = st.selectbox(

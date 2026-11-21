@@ -1,3 +1,9 @@
+"""Trang khám phá nâng cao cho dữ liệu hạnh phúc.
+
+Cung cấp bộ lọc ngữ cảnh, tìm kiếm tên quốc gia bằng tiếng Việt,
+và ba góc nhìn: khám phá, so sánh quốc gia và phân tích yếu tố.
+"""
+
 import re
 import unicodedata
 
@@ -256,6 +262,7 @@ COUNTRY_ALIASES.update(
 
 
 def normalize_country_name(value):
+    """Chuẩn hóa tên quốc gia về chữ thường, bỏ dấu để hỗ trợ tìm kiếm."""
     normalized = unicodedata.normalize("NFKD", str(value).casefold())
     without_accents = "".join(
         character
@@ -266,6 +273,7 @@ def normalize_country_name(value):
 
 
 def country_display_name(country):
+    """Trả về tên Việt hóa kèm tên gốc bằng tiếng Anh nếu có thể."""
     vietnamese_name = VIETNAMESE_COUNTRY_NAMES.get(country)
     if vietnamese_name and vietnamese_name != country:
         return f"{vietnamese_name} ({country})"
@@ -274,6 +282,7 @@ def country_display_name(country):
 
 @st.cache_data(ttl=900)
 def filter_data(years, score_min, score_max, selected_countries):
+    """Lọc dữ liệu theo năm, khoảng điểm hạnh phúc và quốc gia."""
     data = load_all_data()
     filtered = data[
         data["Year"].isin(years)
@@ -293,6 +302,7 @@ score_min = float(data["Happiness Score"].min())
 score_max = float(data["Happiness Score"].max())
 
 with st.sidebar:
+    # Bộ lọc chung điều khiển dữ liệu cho toàn bộ ba tab.
     st.header("Bộ lọc dữ liệu")
     selected_years = st.multiselect("Năm báo cáo", YEARS, default=YEARS)
     score_range = st.slider(
@@ -342,6 +352,7 @@ tab_explore, tab_compare, tab_factors = st.tabs(
     ["🌐 Khám phá", "⚖️ So sánh", "📊 Yếu tố"]
 )
 
+# Tab khám phá: hiển thị phân tán giữa điểm hạnh phúc và yếu tố đã chọn.
 with tab_explore:
     chart_col, ranking_col = st.columns([1.5, 1])
     with chart_col:
@@ -465,6 +476,7 @@ with tab_explore:
         )
 
 with tab_compare:
+    # Tab so sánh: theo dõi xu hướng điểm hạnh phúc của các quốc gia.
     available_countries = sorted(filtered["Country"].dropna().unique())
     default_countries = (
         filtered.nlargest(3, "Happiness Score")["Country"].drop_duplicates().tolist()
@@ -531,6 +543,7 @@ with tab_compare:
         st.info("Chọn ít nhất một quốc gia để xem biểu đồ so sánh.")
 
 with tab_factors:
+    # Tab yếu tố: phân tích từng yếu tố và tổng hợp tương quan của toàn bộ nhóm.
     factor = st.selectbox("Chọn yếu tố", factor_options, key="factor_analysis")
     factor_data = filtered.dropna(subset=[factor, "Happiness Score"])
     fig = px.scatter(

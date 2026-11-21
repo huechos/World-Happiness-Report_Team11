@@ -83,6 +83,7 @@ if not years:
 
 st.subheader("Xu hướng trung bình theo năm")
 yearly_means = data.groupby("Year", as_index=False)[list(METRIC_LABELS)].mean()
+yearly_means_by_year = yearly_means.set_index("Year")
 trend_data = yearly_means.melt(
     id_vars="Year",
     value_vars=list(METRIC_LABELS),
@@ -114,6 +115,30 @@ trend_figure.for_each_annotation(
     lambda annotation: annotation.update(text=annotation.text.split("=")[-1])
 )
 st.plotly_chart(trend_figure, use_container_width=True)
+trend_insights = []
+for metric, label in METRIC_LABELS.items():
+    metric_series = yearly_means_by_year[metric].dropna()
+    metric_years = metric_series.index.tolist()
+    metric_values = metric_series.tolist()
+    metric_change = metric_values[-1] - metric_values[0]
+    metric_trajectory = " → ".join(
+        f"{int(year)}: {value:.3f}"
+        for year, value in zip(metric_years, metric_values)
+    )
+    lowest_year = int(metric_series.idxmin())
+    highest_year = int(metric_series.idxmax())
+    trend_insights.append(
+        f"- **{label}:** {metric_trajectory}. Từ {metric_years[0]} đến "
+        f"{metric_years[-1]} chênh lệch ròng {metric_change:+.3f}; "
+        f"thấp nhất ở {lowest_year} ({metric_series.min():.3f}), "
+        f"cao nhất ở {highest_year} ({metric_series.max():.3f})."
+    )
+st.info(
+    "**Nhận xét chi tiết**\n\n"
+    + "\n\n".join(trend_insights)
+    + "\n\nMỗi ô biểu đồ dùng một trục tung riêng, vì vậy hãy so sánh xu hướng "
+    "trong từng ô; không so sánh trực tiếp độ cao giữa các chỉ số."
+)
 
 st.subheader("Biểu đồ vùng điểm hạnh phúc")
 happiness_area = px.area(
@@ -127,22 +152,85 @@ happiness_area = px.area(
     title="Điểm hạnh phúc trung bình qua các năm",
     color_discrete_sequence=["#4E79A7"],
 )
-happiness_area.update_xaxes(dtick=1)
-happiness_area.update_layout(height=360, margin={"t": 70, "b": 35, "l": 35, "r": 20})
+happiness_area.update_traces(
+    mode="lines+markers+text",
+    fill="tozeroy",
+    fillcolor="rgba(78, 121, 167, 0.16)",
+    line={"color": "#315f91", "width": 3},
+    marker={"color": "#315f91", "size": 9, "line": {"color": "#ffffff", "width": 2}},
+    text=yearly_means["Happiness Score"].map(lambda score: f"{score:.2f}"),
+    textposition="top center",
+    hovertemplate=(
+        "Năm %{x:.0f}<br>"
+        "Điểm hạnh phúc trung bình: %{y:.3f}"
+        "<extra></extra>"
+    ),
+)
+happiness_area.update_xaxes(
+    type="linear",
+    tickmode="array",
+    tickvals=[int(year) for year in years],
+    ticktext=[str(int(year)) for year in years],
+    range=[int(years[0]) - 0.25, int(years[-1]) + 0.25],
+    title_text="Năm",
+    showgrid=False,
+)
+happiness_area.update_yaxes(
+    range=[5, 6],
+    dtick=0.1,
+    title_text="Điểm hạnh phúc trung bình",
+    gridcolor="#e2e8f0",
+)
+happiness_area.update_layout(
+    height=420,
+    margin={"t": 70, "b": 45, "l": 45, "r": 25},
+    showlegend=False,
+)
 st.plotly_chart(happiness_area, use_container_width=True)
-
-first_year, latest_year = years[0], years[-1]
-first_averages = yearly_means.set_index("Year").loc[first_year]
-latest_averages = yearly_means.set_index("Year").loc[latest_year]
-score_change = latest_averages["Happiness Score"] - first_averages["Happiness Score"]
-score_direction = "tăng" if score_change >= 0 else "giảm"
+score_variation = (
+    yearly_means_by_year["Happiness Score"].max()
+    - yearly_means_by_year["Happiness Score"].min()
+)
+score_series = yearly_means_by_year["Happiness Score"].dropna()
+score_change = score_series.iloc[-1] - score_series.iloc[0]
+year_to_year_changes = score_series.diff().dropna()
+change_summary = "; ".join(
+    f"{int(previous_year)}→{int(year)}: {change:+.3f}"
+    for previous_year, year, change in zip(
+        score_series.index[:-1],
+        year_to_year_changes.index,
+        year_to_year_changes,
+    )
+)
+lowest_score_year = int(score_series.idxmin())
+highest_score_year = int(score_series.idxmax())
+if score_change > 0:
+    endpoint_summary = (
+        f"tăng {score_change:.3f} điểm, từ {score_series.iloc[0]:.3f} "
+        f"({int(score_series.index[0])}) lên {score_series.iloc[-1]:.3f} "
+        f"({int(score_series.index[-1])})"
+    )
+elif score_change < 0:
+    endpoint_summary = (
+        f"giảm {abs(score_change):.3f} điểm, từ {score_series.iloc[0]:.3f} "
+        f"({int(score_series.index[0])}) xuống {score_series.iloc[-1]:.3f} "
+        f"({int(score_series.index[-1])})"
+    )
+else:
+    endpoint_summary = (
+        f"không đổi, duy trì ở mức {score_series.iloc[0]:.3f} "
+        f"qua giai đoạn {int(score_series.index[0])}–"
+        f"{int(score_series.index[-1])}"
+    )
 st.info(
-    f"Gợi ý cho Phần 3 báo cáo: từ {first_year} đến {latest_year}, "
-    f"điểm hạnh phúc trung bình {score_direction} "
-    f"{abs(score_change):.3f} điểm "
-    f"({first_averages['Happiness Score']:.3f} → "
-    f"{latest_averages['Happiness Score']:.3f}). "
-    "Các đường GDP và tuổi thọ dùng trục tung riêng để dễ so sánh xu hướng."
+    "**Nhận xét chi tiết**\n\n"
+    f"Điểm trung bình {endpoint_summary}. Tuy nhiên, "
+    f"mức điểm không tăng đều qua từng năm: {change_summary}. "
+    f"Giá trị thấp nhất là {score_series.min():.3f} ({int(lowest_score_year)}), "
+    f"cao nhất là {score_series.max():.3f} ({int(highest_score_year)}), với "
+    f"biên độ chỉ {score_variation:.3f} điểm. Trục tung 5–6 làm rõ biến động "
+    "nhỏ này nên hình dạng có thể khiến chênh lệch trông lớn hơn thực tế; "
+    "hãy đối chiếu nhãn số trên từng điểm."
 )
 
 st.subheader("Tương quan giữa các chỉ số")
@@ -192,7 +280,29 @@ else:
         st.caption("Không thể tính hệ số tương quan từ các giá trị hiện có.")
     else:
         st.metric("Hệ số tương quan Pearson", f"{correlation:.3f}")
-        st.caption(
-            "Hệ số thể hiện mức độ liên hệ tuyến tính trong dữ liệu được lọc; "
-            "tương quan không đồng nghĩa với quan hệ nhân quả."
+        if correlation > 0:
+            correlation_direction = "cùng chiều"
+        elif correlation < 0:
+            correlation_direction = "ngược chiều"
+        else:
+            correlation_direction = "không thể hiện xu hướng tuyến tính"
+        period_description = (
+            "toàn bộ giai đoạn"
+            if selected_year == "Tất cả năm"
+            else f"năm {selected_year}"
+        )
+        st.info(
+            "**Nhận xét chi tiết**\n\n"
+            f"Biểu đồ gồm {len(scatter_data)} điểm trong {period_description}. "
+            f"{METRIC_LABELS[x_metric]} trải từ "
+            f"{scatter_data[x_metric].min():.3f} đến "
+            f"{scatter_data[x_metric].max():.3f}; điểm hạnh phúc trải từ "
+            f"{scatter_data['Happiness Score'].min():.3f} đến "
+            f"{scatter_data['Happiness Score'].max():.3f}. Hệ số Pearson "
+            f"r = {correlation:.3f} cho thấy mối liên hệ tuyến tính "
+            f"{correlation_direction}; |r| càng gần 1 thì xu hướng tuyến tính "
+            "càng rõ, còn gần 0 thì xu hướng tuyến tính càng yếu. Đây chỉ là "
+            "mối liên hệ trong dữ liệu, không chứng minh quan hệ nhân quả. "
+            "Khi xem toàn bộ giai đoạn, mỗi điểm là một quan sát quốc gia-năm, "
+            "nên một quốc gia có thể xuất hiện ở nhiều năm."
         )

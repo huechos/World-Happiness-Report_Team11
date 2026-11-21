@@ -9,5 +9,17 @@ _GLOBE_COMPONENT = components.declare_component(
 )
 
 
-def render_globe_component(figure_json, height, key):
-    return _GLOBE_COMPONENT(figure_json=figure_json, height=height, key=key)
+def render_globe_component(
+    figure_json,
+    height,
+    key,
+    selected_regions=None,
+    selection_mode="single",
+):
+    return _GLOBE_COMPONENT(
+        figure_json=figure_json,
+        height=height,
+        key=key,
+        selected_regions=selected_regions or [],
+        selection_mode=selection_mode,
+    )

@@ -27,6 +27,7 @@
     const globe = document.getElementById("globe");
     const mapError = document.getElementById("map-error");
     let listenersAttached = false;
+    let componentArgs = {};
 
     function postStreamlitMessage(type, payload) {
       window.parent.postMessage(
@@ -44,10 +45,29 @@
         const customData = point && point.customdata;
         const region = Array.isArray(customData) ? customData[0] : customData;
         if (typeof region === "string") {
-          postStreamlitMessage("streamlit:setComponentValue", {
-            value: { region },
-            dataType: "json",
-          });
+          if (componentArgs.selection_mode === "multiple") {
+            const selectedRegions = new Set(componentArgs.selected_regions || []);
+            if (selectedRegions.has(region)) {
+              selectedRegions.delete(region);
+            } else {
+              selectedRegions.add(region);
+            }
+            postStreamlitMessage("streamlit:setComponentValue", {
+              value: {
+                regions: Array.from(selectedRegions),
+                event_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              },
+              dataType: "json",
+            });
+          } else {
+            postStreamlitMessage("streamlit:setComponentValue", {
+              value: {
+                region,
+                event_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              },
+              dataType: "json",
+            });
+          }
         }
       });
     }
@@ -61,6 +81,7 @@
       }
 
       const args = event.data.args;
+      componentArgs = args;
       const figure = JSON.parse(args.figure_json);
       figure.layout.height = args.height;
       figure.layout.autosize = true;

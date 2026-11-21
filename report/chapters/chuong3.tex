@@ -1,0 +1,251 @@
+\chapter{KẾT QUẢ THỰC HIỆN VÀ PHÂN TÍCH DỮ LIỆU}
+
+\section{Sản phẩm đã xây dựng}
+
+Nhóm đã hoàn thành hệ thống dashboard trực quan hóa dữ liệu World Happiness Report. Sản phẩm gồm một trang chủ và năm trang phân tích chính. Dữ liệu được nạp trực tiếp từ năm tệp CSV năm 2015, 2016, 2017, 2018 và 2019 trong thư mục \textit{data}.
+
+Trang chủ giới thiệu mục tiêu của dự án, hiển thị năm dữ liệu mới nhất, số quốc gia, điểm hạnh phúc trung bình và số khu vực. Từ trang chủ, người dùng có thể điều hướng đến các trang Overview, Trends, Regional Analysis, Key Factors và Advanced Insights.
+
+\section{Kết quả tiền xử lý dữ liệu}
+
+\subsection{Chuẩn hóa cấu trúc dữ liệu}
+
+Qua quá trình tiền xử lý, dữ liệu từ các năm được hợp nhất theo cấu trúc chung gồm quốc gia, khu vực, thứ hạng hạnh phúc, điểm hạnh phúc, GDP bình quân đầu người, hỗ trợ xã hội, tuổi thọ khỏe mạnh, tự do, sự hào phóng, nhận thức về tham nhũng và năm báo cáo.
+
+Các cột có tên khác nhau giữa các năm đã được đổi thành tên thống nhất. Chẳng hạn, \textit{Country or region}, \textit{Overall rank}, \textit{Score}, \textit{Economy (GDP per Capita)} và \textit{Health (Life Expectancy)} được ánh xạ tương ứng về \textit{Country}, \textit{Happiness Rank}, \textit{Happiness Score}, \textit{GDP per capita} và \textit{Life Expectancy}.
+
+\subsection{Quy mô dữ liệu}
+
+\begin{table}[H]
+\centering
+\caption{Quy mô dữ liệu theo từng năm}
+\label{tab:quy-mo-du-lieu}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Năm} & \textbf{Số quốc gia} & \textbf{Điểm hạnh phúc trung bình} \\
+\hline
+2015 & 158 & 5.3757 \\
+\hline
+2016 & 157 & 5.3822 \\
+\hline
+2017 & 155 & 5.3540 \\
+\hline
+2018 & 156 & 5.3759 \\
+\hline
+2019 & 156 & 5.4071 \\
+\hline
+\end{tabular}
+\Nguon{Tính toán từ các tệp dữ liệu 2015--2019}
+\end{table}
+
+Bảng \ref{tab:quy-mo-du-lieu} cho thấy quy mô dữ liệu ổn định trong giai đoạn nghiên cứu, dao động từ 155 đến 158 quốc gia mỗi năm. Điểm hạnh phúc trung bình của toàn bộ quan sát năm 2015--2019 dao động trong khoảng 5.3540--5.4071, vì vậy biên độ thay đổi trung bình qua các năm không lớn.
+
+\section{Kết quả trang tổng quan theo năm}
+
+Trang Overview cho phép người dùng chọn từng năm và xem dữ liệu của năm đó. Đối với năm 2019, hệ thống hiển thị 156 quốc gia và chia dữ liệu thành các khu vực địa lý. Người dùng có thể chọn khu vực trên quả địa cầu trực giao để làm nổi bật khu vực tương ứng; bảng dữ liệu bên dưới sẽ được lọc theo khu vực đã chọn.
+
+Các quốc gia có điểm hạnh phúc cao nhất năm 2019 gồm Phần Lan, Đan Mạch, Na Uy, Iceland và Hà Lan. Trong khi đó, Nam Sudan, Cộng hòa Trung Phi, Afghanistan, Tanzania và Rwanda nằm trong nhóm có điểm thấp nhất.
+
+\begin{table}[H]
+\centering
+\caption{Nhóm quốc gia tiêu biểu năm 2019}
+\label{tab:quoc-gia-tieu-bieu}
+\begin{tabular}{|p{5.2cm}|c|p{5.2cm}|c|}
+\hline
+\multicolumn{2}{|c|}{\textbf{Nhóm điểm cao}} & \multicolumn{2}{c|}{\textbf{Nhóm điểm thấp}} \\
+\hline
+\textbf{Quốc gia} & \textbf{Điểm} & \textbf{Quốc gia} & \textbf{Điểm} \\
+\hline
+Finland & 7.769 & South Sudan & 2.853 \\
+\hline
+Denmark & 7.600 & Central African Republic & 3.083 \\
+\hline
+Norway & 7.554 & Afghanistan & 3.203 \\
+\hline
+Iceland & 7.494 & Tanzania & 3.231 \\
+\hline
+Netherlands & 7.488 & Rwanda & 3.334 \\
+\hline
+\end{tabular}
+\Nguon{Dữ liệu World Happiness Report năm 2019}
+\end{table}
+
+Biểu hiện của bản đồ và bảng dữ liệu hỗ trợ người dùng chuyển đổi nhanh giữa góc nhìn toàn cầu và góc nhìn khu vực. Lựa chọn khu vực không làm thay đổi dữ liệu gốc mà chỉ lọc các bản ghi phù hợp trong giao diện.
+
+\section{Kết quả phân tích xu hướng}
+
+\subsection{Xu hướng điểm hạnh phúc trung bình}
+
+Trang Trends tính trung bình điểm hạnh phúc, GDP bình quân đầu người và tuổi thọ khỏe mạnh theo từng năm. Kết quả cho thấy điểm hạnh phúc trung bình từ năm 2015 đến 2019 có xu hướng dao động nhẹ:
+
+\begin{itemize}
+    \item Năm 2015: 5.3757.
+    \item Năm 2016: 5.3822.
+    \item Năm 2017: 5.3540.
+    \item Năm 2018: 5.3759.
+    \item Năm 2019: 5.4071.
+\end{itemize}
+
+So với năm 2015, điểm trung bình năm 2019 tăng khoảng 0.0314 điểm. Tuy nhiên, mức tăng này nhỏ và không biểu thị sự cải thiện lớn hay đồng đều ở tất cả quốc gia. Năm 2017 là năm có điểm trung bình thấp nhất trong giai đoạn được khảo sát.
+
+Biểu đồ vùng của ứng dụng giúp làm nổi bật năm cao nhất và thấp nhất. Trục tung của biểu đồ vùng được giới hạn phù hợp để các biến động nhỏ được quan sát rõ hơn. Do đây là chênh lệch rất nhỏ so với thang điểm, người xem cần đối chiếu cả nhãn số trên các điểm thay vì chỉ nhìn hình dạng của vùng.
+
+\subsection{Tương quan giữa GDP, tuổi thọ và điểm hạnh phúc}
+
+Biểu đồ phân tán cho phép người dùng chọn GDP bình quân đầu người hoặc tuổi thọ khỏe mạnh làm trục ngang. Khi lọc từng năm, hệ thống tính hệ số tương quan Pearson giữa trục đã chọn và điểm hạnh phúc.
+
+Với toàn bộ giai đoạn 2015--2019, hệ số tương quan giữa GDP bình quân đầu người và điểm hạnh phúc là khoảng 0.789. Tương quan này thuộc mức mạnh theo chiều dương, nghĩa là các quốc gia có GDP bình quân đầu người cao nhìn chung cũng có xu hướng có điểm hạnh phúc cao hơn.
+
+Tuổi thọ khỏe mạnh cũng có tương quan dương mạnh với điểm hạnh phúc. Kết quả này cho thấy điều kiện kinh tế và sức khỏe có liên hệ đáng kể với mức hạnh phúc trong dữ liệu nhưng không thể chứng minh rằng GDP hoặc tuổi thọ là nguyên nhân duy nhất của hạnh phúc.
+
+\section{Kết quả phân tích theo khu vực}
+
+Trang Regional Analysis tính điểm hạnh phúc trung bình và số quốc gia cho mỗi khu vực trong năm được chọn. Với dữ liệu năm 2019, Australia and New Zealand và North America là hai khu vực có điểm trung bình cao nhất trong các nhóm đủ dữ liệu.
+
+\begin{table}[H]
+\centering
+\caption{Điểm hạnh phúc trung bình theo khu vực năm 2019}
+\label{tab:khu-vuc-2019}
+\begin{tabular}{|p{6.2cm}|c|c|}
+\hline
+\textbf{Khu vực} & \textbf{Điểm trung bình} & \textbf{Số quốc gia} \\
+\hline
+Australia and New Zealand & 7.2675 & 2 \\
+\hline
+North America & 7.0850 & 2 \\
+\hline
+Western Europe & 6.8422 & 21 \\
+\hline
+Latin America and Caribbean & 5.9544 & 21 \\
+\hline
+Eastern Asia & 5.6888 & 6 \\
+\hline
+Central and Eastern Europe & 5.5615 & 29 \\
+\hline
+Southeastern Asia & 5.2737 & 9 \\
+\hline
+Middle East and Northern Africa & 5.2370 & 19 \\
+\hline
+Southern Asia & 4.5269 & 7 \\
+\hline
+Sub-Saharan Africa & 4.3001 & 40 \\
+\hline
+\end{tabular}
+\Nguon{Tính toán từ dữ liệu năm 2019}
+\end{table}
+
+Cần lưu ý rằng số quốc gia trong mỗi khu vực khác nhau. Vì vậy, điểm trung bình của khu vực có hai quốc gia chỉ phản ánh chính xác nhóm nhỏ này trong dữ liệu, không nên suy rộng thành kết luận về toàn bộ dân số khu vực.
+
+Trang khu vực còn hỗ trợ chọn nhiều quốc gia để so sánh điểm hạnh phúc theo từng năm. Khi chọn ít nhất hai quốc gia, ứng dụng tạo biểu đồ đường với trục ngang là năm và trục dọc là điểm hạnh phúc. Chức năng này giúp nhận biết quốc gia tăng, giảm hay duy trì điểm số tương đối ổn định.
+
+\section{Kết quả phân tích các yếu tố hạnh phúc}
+
+\subsection{Ma trận tương quan}
+
+Trang Key Factors tính ma trận tương quan Pearson giữa điểm hạnh phúc và các yếu tố GDP bình quân đầu người, hỗ trợ xã hội, tuổi thọ khỏe mạnh, tự do, hào phóng và nhận thức về tham nhũng.
+
+Với toàn bộ dữ liệu giai đoạn 2015--2019, các hệ số tương quan với điểm hạnh phúc được sắp xếp như sau:
+
+\begin{itemize}
+    \item GDP bình quân đầu người: 0.7893.
+    \item Tuổi thọ khỏe mạnh: 0.7425.
+    \item Hỗ trợ xã hội: 0.6488.
+    \item Tự do lựa chọn cuộc sống: 0.5513.
+    \item Nhận thức về tham nhũng: 0.3973.
+    \item Sự hào phóng: 0.1376.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Tương quan Pearson với điểm hạnh phúc}
+\label{tab:tuong-quan-yếu-to}
+\begin{tabular}{|p{6cm}|c|p{4cm}|}
+\hline
+\textbf{Yếu tố} & \textbf{Hệ số $r$} & \textbf{Mức liên hệ tuyến tính} \\
+\hline
+GDP per capita & 0.7893 & Mạnh, cùng chiều \\
+\hline
+Life Expectancy & 0.7425 & Mạnh, cùng chiều \\
+\hline
+Social support & 0.6488 & Vừa đến mạnh \\
+\hline
+Freedom & 0.5513 & Vừa \\
+\hline
+Perceptions of corruption & 0.3973 & Yếu đến vừa \\
+\hline
+Generosity & 0.1376 & Rất yếu \\
+\hline
+\end{tabular}
+\Nguon{Tính toán trên dữ liệu 2015--2019}
+\end{table}
+
+Kết quả cho thấy GDP bình quân đầu người có liên hệ tuyến tính mạnh nhất trong các yếu tố được khảo sát, tiếp theo là tuổi thọ khỏe mạnh và hỗ trợ xã hội. Sự hào phóng có hệ số dương nhưng liên hệ tuyến tính rất yếu.
+
+Ma trận tương quan cũng cho thấy các yếu tố kinh tế và xã hội thường có xu hướng liên quan với nhau. Tuy nhiên, hệ số tương quan không thể được dùng để khẳng định một yếu tố là nguyên nhân trực tiếp làm thay đổi điểm hạnh phúc.
+
+\subsection{Pairplot các yếu tố}
+
+Pairplot được xây dựng cho các chỉ số được người dùng chọn. Biểu đồ sử dụng điểm hạnh phúc, GDP, hỗ trợ xã hội, tuổi thọ hoặc các yếu tố khác để tạo ma trận phân tán. Màu sắc thể hiện khu vực địa lý.
+
+Khi quan sát GDP và điểm hạnh phúc, các điểm có xu hướng phân bố theo đường tăng chung. Các quan sát tương tự xuất hiện ở cặp hỗ trợ xã hội -- điểm hạnh phúc và tuổi thọ -- điểm hạnh phúc. Ngược lại, cặp hào phóng -- điểm hạnh phúc có phân bố phân tán hơn và ít thể hiện xu hướng tuyến tính.
+
+\section{Kết quả khám phá nâng cao}
+
+Trang Advanced Insights cung cấp bộ lọc theo năm, khoảng điểm hạnh phúc và quốc gia. Dữ liệu sau khi lọc được cập nhật đồng thời cho ba tab Khám phá, So sánh và Yếu tố.
+
+Trong tab Khám phá, người dùng có thể chọn yếu tố đặt ở trục ngang và quan sát phân tán với điểm hạnh phúc. Tab này còn hiển thị top 10 quốc gia có điểm cao nhất trong năm mới nhất thuộc phạm vi bộ lọc.
+
+Trong tab So sánh, người dùng có thể chọn tối đa 8 quốc gia. Hệ thống vẽ đường biến động điểm hạnh phúc theo năm cho từng quốc gia, đồng thời hiển thị nhận xét về điểm cao nhất, điểm thấp nhất và mức thay đổi từ năm đầu đến năm cuối.
+
+Trong tab Yếu tố, ứng dụng tính tương quan của từng yếu tố với điểm hạnh phúc trong phạm vi đang lọc. Người dùng có thể xác định yếu tố có tương quan mạnh nhất hoặc yếu tố cần quan sát thêm mà không thay đổi dữ liệu gốc.
+
+\section{Đánh giá chức năng và chất lượng hệ thống}
+
+\subsection{Ưu điểm}
+
+\begin{itemize}
+    \item Giao diện được chia thành nhiều trang theo mục tiêu phân tích rõ ràng.
+    \item Dữ liệu được chuẩn hóa và có thể xem theo năm, khu vực, quốc gia hoặc khoảng điểm.
+    \item Các biểu đồ hỗ trợ tương tác, đặt trỏ chuột để xem thông tin chi tiết và thay đổi phạm vi quan sát.
+    \item Hệ thống kết hợp thống kê mô tả, tương quan và trực quan hóa trong một dashboard.
+    \item Nhóm thống nhất cách đặt tên dữ liệu để tránh khác biệt giữa các tệp năm.
+\end{itemize}
+
+\subsection{Hạn chế}
+
+\begin{itemize}
+    \item Dữ liệu chỉ bao gồm giai đoạn 2015--2019 nên chưa phản ánh các năm gần đây hơn.
+    \item Một số tên quốc gia và khu vực có thể thay đổi hoặc không thống nhất hoàn toàn giữa các năm.
+    \item Tương quan Pearson chủ yếu đo quan hệ tuyến tính nên không phản ánh mọi dạng quan hệ phi tuyến.
+    \item Dashboard chưa thực hiện mô hình dự đoán hoặc phân tích nhân quả.
+    \item Một số trang mới có dữ liệu và nhận xét tự động, nhưng vẫn có thể cần bổ sung bài kiểm tra tự động cho toàn bộ quy trình.
+\end{itemize}
+
+\section{Kết quả đạt được}
+
+Nhóm đã hoàn thành hệ thống trực quan đáp ứng các yêu cầu cơ bản:
+
+\begin{enumerate}
+    \item Tải và chuẩn hóa năm tệp dữ liệu World Happiness Report.
+    \item Xây dựng trang chủ và các trang phân tích thống nhất giao diện.
+    \item Hiển thị dữ liệu theo năm và theo khu vực trên bản đồ.
+    \item Xây dựng biểu đồ xu hướng, vùng, phân tán, cột và heatmap.
+    \item Tính hệ số tương quan Pearson và thống kê mô tả.
+    \item Hỗ trợ lọc dữ liệu theo năm, khu vực, quốc gia và khoảng điểm hạnh phúc.
+    \item So sánh nhiều quốc gia qua các năm báo cáo.
+    \item Rút ra nhận xét dựa trên dữ liệu trong từng trang dashboard.
+\end{enumerate}
+
+\section{Hướng phát triển}
+
+Trong thời gian tiếp theo, hệ thống có thể được mở rộng theo các hướng sau:
+
+\begin{itemize}
+    \item Cập nhật dữ liệu của các năm gần đây hơn.
+    \item Bổ sung hồi quy tuyến tính hoặc mô hình học máy để dự đoán điểm hạnh phúc.
+    \item Thêm phân cụm quốc gia dựa trên các chỉ số kinh tế -- xã hội.
+    \item Bổ sung kiểm tra dữ liệu đầu vào và thông báo khi có giá trị thiếu hoặc bất thường.
+    \item Thêm bài kiểm thử tự động cho hàm tiền xử lý và module tải dữ liệu.
+    \item Cải thiện khả năng truy cập, hỗ trợ thiết bị di động và lưu trạng thái bộ lọc.
+    \item Xuất kết quả phân tích thành file Excel, CSV hoặc PDF.
+\end{itemize}

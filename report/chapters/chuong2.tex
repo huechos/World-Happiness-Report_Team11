@@ -1,0 +1,186 @@
+\chapter{CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP THỰC HIỆN}
+
+\section{Tổng quan dữ liệu World Happiness Report}
+
+\subsection{Bản chất của dữ liệu}
+
+Dữ liệu của đề tài được lưu dưới dạng tệp CSV theo từng năm. Mỗi dòng dữ liệu mô tả thông tin của một quốc gia trong một năm báo cáo. Cấu trúc dữ liệu gồm tên quốc gia, khu vực, thứ hạng hạnh phúc, điểm hạnh phúc và các yếu tố liên quan.
+
+Điểm hạnh phúc được sử dụng làm biến mục tiêu để xếp hạng và so sánh mức độ hạnh phúc giữa các quốc gia. Thứ hạng hạnh phúc cho biết vị trí tương đối của quốc gia trong từng năm. GDP bình quân đầu người, hỗ trợ xã hội, tuổi thọ khỏe mạnh, tự do lựa chọn, sự hào phóng và nhận thức về tham nhũng là các biến giải thích được khảo sát trong hệ thống.
+
+\subsection{Cấu trúc dữ liệu giai đoạn 2015--2019}
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc dữ liệu chính của dự án}
+\label{tab:co-cau-du-lieu}
+\begin{tabular}{|p{4cm}|p{8.5cm}|}
+\hline
+\textbf{Nhóm dữ liệu} & \textbf{Tên trường/chức năng} \\
+\hline
+Thông tin định danh & Country, Region, Year \\
+\hline
+Chỉ số hạnh phúc & Happiness Rank, Happiness Score \\
+\hline
+Yếu tố kinh tế & GDP per capita \\
+\hline
+Yếu tố xã hội & Social support, Life Expectancy, Freedom \\
+\hline
+Yếu tố hành vi và nhận thức & Generosity, Perceptions of corruption \\
+\hline
+\end{tabular}
+\Nguon{Dữ liệu dự án sau khi tiền xử lý}
+\end{table}
+
+Bảng \ref{tab:co-cau-du-lieu} liệt kê các trường được sử dụng thống nhất trong dashboard. Một số tệp gốc còn chứa các cột bổ sung như khoảng tin cậy, độ dư Dystopia hoặc sai số chuẩn. Vì các cột này không có đầy đủ ở mọi năm nên không được sử dụng làm chỉ số phân tích chung.
+
+\section{Tiền xử lý dữ liệu}
+
+\subsection{Chuẩn hóa cấu trúc}
+
+Do dữ liệu của các năm được xuất từ nhiều nguồn tương tự nhưng có tên cột không đồng nhất, hệ thống ánh xạ các tên trường về tên chung. Một số ánh xạ tiêu biểu là:
+
+\begin{itemize}
+    \item \textit{Country or region} được chuyển thành \textit{Country}.
+    \item \textit{Overall rank} hoặc \textit{Happiness.Rank} được chuyển thành \textit{Happiness Rank}.
+    \item \textit{Score} hoặc \textit{Happiness.Score} được chuyển thành \textit{Happiness Score}.
+    \item Các tên GDP, tuổi thọ, hỗ trợ xã hội và nhận thức tham nhũng của từng năm được chuẩn hóa theo tên chung.
+\end{itemize}
+
+\subsection{Bổ sung khu vực}
+
+Mỗi bản ghi được gắn với khu vực địa lý để hỗ trợ so sánh vùng. Hệ thống sử dụng dữ liệu khu vực của hai năm tham chiếu 2015 và 2016 để xây dựng ánh xạ quốc gia -- khu vực. Với các tên quốc gia khác nhau giữa các năm, module tiền xử lý định nghĩa một số bí danh như Hong Kong, Taiwan, North Macedonia và Trinidad and Tobago.
+
+\subsection{Xử lý giá trị thiếu}
+
+Các cột số được chuyển sang kiểu số; giá trị không hợp lệ sẽ được xử lý bằng \textit{median} của cột trong từng tệp dữ liệu. Cách làm này giúp hệ thống giữ kích thước mẫu và không loại toàn bộ bản ghi chỉ vì một số ít giá trị thiếu.
+
+Khi tải dữ liệu cho dashboard, \textit{dashboard\_utils.py} tiếp tục chuyển các trường cần phân tích sang kiểu số bằng \textit{pd.to\_numeric(..., errors="coerce")}. Sau đó, dữ liệu trùng quốc gia trong cùng năm được loại bỏ và kết quả được sắp xếp theo năm và thứ hạng hạnh phúc.
+
+\subsection{Quy trình tiền xử lý tổng quát}
+
+\begin{sodo}[H]
+\centering
+\fbox{\parbox[c][5.2cm][c]{0.82\textwidth}{\centering
+\textbf{1. Đọc năm tệp CSV}\\[0.25cm]
+$\downarrow$\\[0.2cm]
+\textbf{2. Chuẩn hóa tên cột và tên quốc gia}\\[0.25cm]
+$\downarrow$\\[0.2cm]
+\textbf{3. Bổ sung Region và cột Year}\\[0.25cm]
+$\downarrow$\\[0.2cm]
+\textbf{4. Xử lý giá trị thiếu và loại trùng lặp}\\[0.25cm]
+$\downarrow$\\[0.2cm]
+\textbf{5. Nạp vào dashboard}
+}}
+\SodoCaption{Quy trình tiền xử lý dữ liệu}{Nhóm 11 tự xây dựng}
+\label{fig:quy-trinh-tien-xu-ly}
+\end{sodo}
+
+\section{Kiến trúc và công nghệ triển khai}
+
+\subsection{Kiến trúc tổng thể}
+
+Ứng dụng được tổ chức theo mô hình nhiều trang của Streamlit. Tệp \textit{app.py} là trang chủ; thư mục \textit{pages} chứa các trang phân tích; \textit{dashboard\_utils.py} cung cấp hàm tải dữ liệu và giao diện chung; \textit{preprocess.py} thực hiện tiền xử lý dữ liệu; thư mục \textit{data} lưu các tệp nguồn theo năm.
+
+\begin{table}[H]
+\centering
+\caption{Vai trò của các thành phần trong hệ thống}
+\label{tab:thanh-phan-he-thong}
+\begin{tabular}{|p{4cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Vai trò} \\
+\hline
+app.py & Hiển thị trang chủ, thông tin tổng quan và điều hướng. \\
+\hline
+dashboard\_utils.py & Nạp dữ liệu, chuẩn hóa trường chung và áp dụng giao diện. \\
+\hline
+preprocess.py & Chuẩn hóa tên cột, bổ sung khu vực và xử lý giá trị thiếu. \\
+\hline
+pages/ & Chứa các trang Overview, Trends, Regional Analysis, Key Factors và Advanced Insights. \\
+\hline
+data/ & Lưu dữ liệu năm 2015--2019. \\
+\hline
+\end{tabular}
+\Nguon{Nhóm 11 tổng hợp từ mã nguồn dự án}
+\end{table}
+
+\subsection{Công cụ và thư viện}
+
+\begin{itemize}
+    \item \textbf{Python}: ngôn ngữ lập trình chính.
+    \item \textbf{Pandas}: nạp, nối, làm sạch, gom nhóm và tính toán dữ liệu.
+    \item \textbf{Streamlit}: xây dựng giao diện dashboard nhiều trang và bộ lọc tương tác.
+    \item \textbf{Plotly Express}: tạo bản đồ, biểu đồ đường, cột, vùng, phân tán và ma trận biểu đồ.
+    \item \textbf{NumPy}: hỗ trợ xử lý dữ liệu số trong môi trường Python.
+\end{itemize}
+
+\section{Phương pháp thống kê và phân tích}
+
+\subsection{Thống kê mô tả}
+
+Ứng dụng tính giá trị trung bình của từng chỉ số theo năm bằng phương thức \textit{groupby} và \textit{mean}. Điểm hạnh phúc trung bình được dùng để theo dõi xu hướng chung, trong khi điểm trung bình theo khu vực được dùng để so sánh các vùng địa lý. Hệ thống cũng thống kê số quốc gia, số khu vực và số bản ghi trong phạm vi bộ lọc.
+
+\subsection{Hệ số tương quan Pearson}
+
+Mối liên hệ tuyến tính giữa hai biến được đo bằng hệ số tương quan Pearson. Với hai biến $X$ và $Y$, hệ số Pearson được tính bởi công thức:
+
+\begin{equation}
+r = \frac{\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})}
+{\sqrt{\sum_{i=1}^{n}(x_i-\bar{x})^2}
+\sqrt{\sum_{i=1}^{n}(y_i-\bar{y})^2}}
+\label{pt:pearson}
+\end{equation}
+
+Trong đó:
+
+\begin{itemize}
+    \item $x_i$, $y_i$ là giá trị quan sát thứ $i$ của hai biến.
+    \item $\bar{x}$, $\bar{y}$ là giá trị trung bình tương ứng.
+    \item $r$ nằm trong khoảng từ $-1$ đến $1$.
+\end{itemize}
+
+Giá trị $r$ dương cho thấy hai biến có xu hướng tăng cùng chiều, giá trị $r$ âm cho thấy xu hướng ngược chiều và giá trị gần $0$ biểu thị liên hệ tuyến tính yếu. Tuy nhiên, tương quan không chứng minh quan hệ nhân quả.
+
+\subsection{Biểu đồ phân tán và pairplot}
+
+Biểu đồ phân tán được sử dụng để quan sát mối quan hệ giữa điểm hạnh phúc và một chỉ số khác. Pairplot cho phép hiển thị đồng thời nhiều cặp chỉ số; phần không thuộc đường chéo là biểu đồ phân tán, dữ liệu có thể được phân biệt theo khu vực hoặc năm bằng màu sắc.
+
+\subsection{Gom nhóm và lọc dữ liệu}
+
+Dashboard sử dụng ba loại bộ lọc chính:
+
+\begin{itemize}
+    \item Lọc theo năm báo cáo.
+    \item Lọc theo khu vực địa lý hoặc quốc gia.
+    \item Lọc theo khoảng điểm hạnh phúc.
+\end{itemize}
+
+Kết quả sau khi lọc được dùng trực tiếp để tính thống kê, vẽ biểu đồ và so sánh. Điều này giúp kết quả phân tích phản ánh đúng phạm vi mà người dùng đang quan sát.
+
+\section{Thiết kế các chức năng phân tích}
+
+\subsection{Trang tổng quan theo năm}
+
+Trang Overview cho phép người dùng chọn năm, hiển thị bản đồ trực giao và lọc quốc gia theo khu vực. Khi chọn một khu vực trên bản đồ, bảng dữ liệu chỉ hiển thị các quốc gia thuộc khu vực đó.
+
+\subsection{Trang xu hướng}
+
+Trang Trends tổng hợp giá trị trung bình theo năm cho điểm hạnh phúc, GDP bình quân đầu người và tuổi thọ khỏe mạnh. Trang cũng cung cấp biểu đồ vùng điểm hạnh phúc và biểu đồ phân tán giữa điểm hạnh phúc với GDP hoặc tuổi thọ. Hệ số Pearson được tính từ dữ liệu sau khi loại các giá trị thiếu.
+
+\subsection{Trang phân tích khu vực}
+
+Trang Regional Analysis hỗ trợ lọc theo năm và nhiều khu vực. Hệ thống tính điểm hạnh phúc trung bình và số quốc gia cho từng khu vực, sau đó hiển thị bằng biểu đồ cột. Trang còn cho phép chọn ít nhất hai quốc gia để so sánh điểm hạnh phúc theo thời gian.
+
+\subsection{Trang phân tích yếu tố}
+
+Trang Key Factors tính ma trận tương quan Pearson cho điểm hạnh phúc, GDP, hỗ trợ xã hội, tuổi thọ khỏe mạnh, tự do lựa chọn, hào phóng và nhận thức về tham nhũng. Ma trận tương quan được hiển thị bằng heatmap. Trang cũng tính hệ số tương quan của từng yếu tố với điểm hạnh phúc và tạo pairplot từ các chỉ số được chọn.
+
+\subsection{Trang khám phá nâng cao}
+
+Trang Advanced Insights cung cấp bộ lọc phía thanh bên theo năm, khoảng điểm hạnh phúc và quốc gia. Trang được chia thành ba tab:
+
+\begin{itemize}
+    \item Tab khám phá hiển thị phân tán theo yếu tố và danh sách top 10 quốc gia.
+    \item Tab so sánh theo dõi thay đổi điểm hạnh phúc của tối đa 8 quốc gia.
+    \item Tab yếu tố phân tích scatter plot và tổng hợp tương quan của các yếu tố.
+\end{itemize}

@@ -123,29 +123,16 @@ trend_figure.for_each_annotation(
     lambda annotation: annotation.update(text=annotation.text.split("=")[-1])
 )
 st.plotly_chart(trend_figure, use_container_width=True)
-trend_insights = []
-for metric, label in METRIC_LABELS.items():
-    metric_series = yearly_means_by_year[metric].dropna()
-    metric_years = metric_series.index.tolist()
-    metric_values = metric_series.tolist()
-    metric_change = metric_values[-1] - metric_values[0]
-    metric_trajectory = " → ".join(
-        f"{int(year)}: {value:.3f}"
-        for year, value in zip(metric_years, metric_values)
-    )
-    lowest_year = int(metric_series.idxmin())
-    highest_year = int(metric_series.idxmax())
-    trend_insights.append(
-        f"- **{label}:** {metric_trajectory}. Từ {metric_years[0]} đến "
-        f"{metric_years[-1]} chênh lệch ròng {metric_change:+.3f}; "
-        f"thấp nhất ở {lowest_year} ({metric_series.min():.3f}), "
-        f"cao nhất ở {highest_year} ({metric_series.max():.3f})."
-    )
 st.info(
-    "**Nhận xét chi tiết**\n\n"
-    + "\n\n".join(trend_insights)
-    + "\n\nMỗi ô biểu đồ dùng một trục tung riêng, vì vậy hãy so sánh xu hướng "
-    "trong từng ô; không so sánh trực tiếp độ cao giữa các chỉ số."
+    "**Nhận xét**\n\n"
+    "Quan sát ba đường xu hướng cạnh nhau cho thấy điểm hạnh phúc khá ổn định "
+    "so với những nhịp lên xuống rõ hơn ở GDP và tuổi thọ. GDP tăng trong "
+    "những năm đầu rồi chững lại, còn tuổi thọ giảm trước khi phục hồi về cuối "
+    "giai đoạn. Diễn biến này gợi ý rằng chất lượng cuộc sống không chỉ gắn "
+    "với kinh tế hay sức khỏe; các yếu tố xã hội và cảm nhận cá nhân cũng "
+    "đáng được xem xét. Đây là nhận định từ xu hướng quan sát được, không "
+    "phải kết luận rằng chỉ số nào gây ra hạnh phúc. Mỗi ô có trục tung riêng "
+    "nên cần so sánh hình dạng xu hướng trong từng ô."
 )
 
 st.subheader("Biểu đồ vùng điểm hạnh phúc")
@@ -196,60 +183,27 @@ happiness_area.update_layout(
     showlegend=False,
 )
 st.plotly_chart(happiness_area, use_container_width=True)
-score_variation = (
-    yearly_means_by_year["Happiness Score"].max()
-    - yearly_means_by_year["Happiness Score"].min()
-)
-score_series = yearly_means_by_year["Happiness Score"].dropna()
-score_change = score_series.iloc[-1] - score_series.iloc[0]
-year_to_year_changes = score_series.diff().dropna()
-change_summary = "; ".join(
-    f"{int(previous_year)}→{int(year)}: {change:+.3f}"
-    for previous_year, year, change in zip(
-        score_series.index[:-1],
-        year_to_year_changes.index,
-        year_to_year_changes,
-    )
-)
-lowest_score_year = int(score_series.idxmin())
-highest_score_year = int(score_series.idxmax())
-if score_change > 0:
-    endpoint_summary = (
-        f"tăng {score_change:.3f} điểm, từ {score_series.iloc[0]:.3f} "
-        f"({int(score_series.index[0])}) lên {score_series.iloc[-1]:.3f} "
-        f"({int(score_series.index[-1])})"
-    )
-elif score_change < 0:
-    endpoint_summary = (
-        f"giảm {abs(score_change):.3f} điểm, từ {score_series.iloc[0]:.3f} "
-        f"({int(score_series.index[0])}) xuống {score_series.iloc[-1]:.3f} "
-        f"({int(score_series.index[-1])})"
-    )
-else:
-    endpoint_summary = (
-        f"không đổi, duy trì ở mức {score_series.iloc[0]:.3f} "
-        f"qua giai đoạn {int(score_series.index[0])}–"
-        f"{int(score_series.index[-1])}"
-    )
 st.info(
-    "**Nhận xét chi tiết**\n\n"
-    f"Điểm trung bình {endpoint_summary}. Tuy nhiên, "
-    f"mức điểm không tăng đều qua từng năm: {change_summary}. "
-    f"Giá trị thấp nhất là {score_series.min():.3f} ({int(lowest_score_year)}), "
-    f"cao nhất là {score_series.max():.3f} ({int(highest_score_year)}), với "
-    f"biên độ chỉ {score_variation:.3f} điểm. Trục tung 5–6 làm rõ biến động "
-    "nhỏ này nên hình dạng có thể khiến chênh lệch trông lớn hơn thực tế; "
-    "hãy đối chiếu nhãn số trên từng điểm."
+    "**Nhận xét**\n\n"
+    "Thoạt nhìn, đường điểm hạnh phúc gần như đi ngang và không có bước ngoặt "
+    "lớn trong giai đoạn này. Có một nhịp chùng xuống rồi mới nhích "
+    "lên, nên cảm giác chung là sự cải thiện khá từ tốn chứ không tăng đều "
+    "qua từng năm. Trục tung được thu hẹp còn 5–6 để nhìn rõ những dao động "
+    "nhỏ, vì vậy độ dốc trên hình có thể trông mạnh hơn thực tế. Cần đối chiếu "
+    "các nhãn số trước khi kết luận mức thay đổi là đáng kể."
 )
 
 st.subheader("Tương quan giữa các chỉ số")
 # Cho phép người dùng chọn trục X và năm trước khi vẽ scatter plot.
 control_col, year_col = st.columns(2)
 with control_col:
+    scatter_metrics = [
+        metric for metric in METRIC_LABELS if metric != "Happiness Score"
+    ]
     x_metric = st.selectbox(
         "Chỉ số trên trục X",
-        options=list(METRIC_LABELS),
-        index=list(METRIC_LABELS).index("GDP per capita"),
+        options=scatter_metrics,
+        index=scatter_metrics.index("GDP per capita"),
         format_func=lambda metric: METRIC_LABELS[metric],
     )
 with year_col:
@@ -290,29 +244,132 @@ else:
         st.caption("Không thể tính hệ số tương quan từ các giá trị hiện có.")
     else:
         st.metric("Hệ số tương quan Pearson", f"{correlation:.3f}")
-        if correlation > 0:
-            correlation_direction = "cùng chiều"
-        elif correlation < 0:
-            correlation_direction = "ngược chiều"
+        if abs(correlation) >= 0.7:
+            correlation_strength = "khá rõ"
+        elif abs(correlation) >= 0.4:
+            correlation_strength = "vừa phải"
+        elif abs(correlation) >= 0.2:
+            correlation_strength = "khá nhẹ"
         else:
-            correlation_direction = "không thể hiện xu hướng tuyến tính"
-        period_description = (
-            "toàn bộ giai đoạn"
-            if selected_year == "Tất cả năm"
-            else f"năm {selected_year}"
-        )
+            correlation_strength = "khó nhận ra"
+        yearly_correlations = {}
+        for year, year_data in data.groupby("Year"):
+                paired_values = year_data[[x_metric, "Happiness Score"]].dropna()
+                if len(paired_values) >= 2:
+                    yearly_correlations[int(year)] = paired_values[x_metric].corr(
+                        paired_values["Happiness Score"]
+                    )
+        yearly_correlations = pd.Series(yearly_correlations).dropna()
+
+        if correlation > 0:
+            relationship_description = (
+                    f"các quốc gia có {METRIC_LABELS[x_metric]} cao hơn thường "
+                    "cũng có điểm hạnh phúc cao hơn"
+            )
+        elif correlation < 0:
+            relationship_description = (
+                    f"các quốc gia có {METRIC_LABELS[x_metric]} cao hơn có xu "
+                    "hướng có điểm hạnh phúc thấp hơn"
+            )
+        else:
+            relationship_description = (
+                    f"đám mây điểm chưa cho thấy {METRIC_LABELS[x_metric]} đi "
+                    "cùng một xu hướng tăng hoặc giảm rõ rệt của điểm hạnh phúc"
+            )
+        if selected_year == "Tất cả năm":
+                if yearly_correlations.empty:
+                    year_comparison = (
+                        "Chưa đủ dữ liệu theo từng năm để so sánh sự ổn định của "
+                        "mối liên hệ này."
+                    )
+                else:
+                    strongest_year = int(yearly_correlations.abs().idxmax())
+                    weakest_year = int(yearly_correlations.abs().idxmin())
+                    signs = set(
+                        yearly_correlations.apply(
+                            lambda value: 1 if value > 0 else -1 if value < 0 else 0
+                        )
+                    )
+                    nonzero_signs = signs - {0}
+                    if len(nonzero_signs) <= 1:
+                        consistency = (
+                            "Chiều liên hệ nhìn chung được giữ nguyên qua các năm, "
+                            "nên xu hướng chung không chỉ đến từ một năm riêng lẻ."
+                        )
+                    else:
+                        consistency = (
+                            "Chiều liên hệ có lúc đảo ngược giữa các năm; vì vậy "
+                            "kết quả gộp cần được diễn giải thận trọng."
+                        )
+                    year_comparison = (
+                        f"{consistency} Xu hướng rõ nhất xuất hiện ở {strongest_year}, "
+                        f"còn mờ nhất ở {weakest_year}."
+                    )
+                period_description = "toàn bộ giai đoạn"
+                repeated_country_note = (
+                    " Một quốc gia có thể xuất hiện nhiều lần do dữ liệu gồm nhiều "
+                    "năm."
+                )
+        else:
+                selected_year_value = int(selected_year)
+                if selected_year_value in yearly_correlations.index:
+                    selected_strength = abs(
+                        yearly_correlations.loc[selected_year_value]
+                    )
+                    strongest_strength = yearly_correlations.abs().max()
+                    weakest_strength = yearly_correlations.abs().min()
+                    if selected_strength == strongest_strength:
+                        year_comparison = (
+                            "Trong các năm báo cáo, đây là một trong những năm có "
+                            "mối liên hệ rõ nhất."
+                        )
+                    elif selected_strength == weakest_strength:
+                        year_comparison = (
+                            "So với các năm còn lại, mối liên hệ trong năm này thuộc "
+                            "nhóm mờ nhạt nhất."
+                        )
+                    else:
+                        year_comparison = (
+                            "Mức độ liên hệ trong năm này nằm giữa mức mạnh nhất và "
+                            "yếu nhất của các năm báo cáo."
+                        )
+                    pooled_values = data[[x_metric, "Happiness Score"]].dropna()
+                    pooled_correlation = pooled_values[x_metric].corr(
+                        pooled_values["Happiness Score"]
+                    )
+                    if correlation * pooled_correlation < 0:
+                        year_comparison += (
+                            " Hướng của mối liên hệ cũng khác với xu hướng khi gộp "
+                            "toàn bộ các năm."
+                        )
+                    elif abs(correlation - pooled_correlation) <= 0.05:
+                        year_comparison += (
+                            " Hướng và mức độ nhìn chung gần với xu hướng của toàn "
+                            "giai đoạn."
+                        )
+                    elif abs(correlation) > abs(pooled_correlation):
+                        year_comparison += (
+                            " Mối liên hệ trong năm này rõ hơn xu hướng khi gộp "
+                            "toàn bộ các năm."
+                        )
+                    else:
+                        year_comparison += (
+                            " Mối liên hệ trong năm này yếu hơn xu hướng khi gộp "
+                            "toàn bộ các năm."
+                        )
+                else:
+                    year_comparison = (
+                        "Chưa đủ dữ liệu ở năm này để đối chiếu với các năm khác."
+                    )
+                period_description = f"năm {selected_year}"
+                repeated_country_note = ""
+
         st.info(
-            "**Nhận xét chi tiết**\n\n"
-            f"Biểu đồ gồm {len(scatter_data)} điểm trong {period_description}. "
-            f"{METRIC_LABELS[x_metric]} trải từ "
-            f"{scatter_data[x_metric].min():.3f} đến "
-            f"{scatter_data[x_metric].max():.3f}; điểm hạnh phúc trải từ "
-            f"{scatter_data['Happiness Score'].min():.3f} đến "
-            f"{scatter_data['Happiness Score'].max():.3f}. Hệ số Pearson "
-            f"r = {correlation:.3f} cho thấy mối liên hệ tuyến tính "
-            f"{correlation_direction}; |r| càng gần 1 thì xu hướng tuyến tính "
-            "càng rõ, còn gần 0 thì xu hướng tuyến tính càng yếu. Đây chỉ là "
-            "mối liên hệ trong dữ liệu, không chứng minh quan hệ nhân quả. "
-            "Khi xem toàn bộ giai đoạn, mỗi điểm là một quan sát quốc gia-năm, "
-            "nên một quốc gia có thể xuất hiện ở nhiều năm."
+                "**Nhận xét**\n\n"
+                f"Với {METRIC_LABELS[x_metric]}, trong {period_description}, "
+                f"{relationship_description}. Mẫu hình này {correlation_strength}. "
+                f"{year_comparison} Những điểm nằm xa xu hướng chung cho thấy vẫn "
+                "có các quốc gia khác biệt, nên chỉ số này không thể giải thích "
+                "riêng lẻ mức hạnh phúc. Tương quan cũng không chứng minh quan hệ "
+                f"nhân quả.{repeated_country_note}"
         )

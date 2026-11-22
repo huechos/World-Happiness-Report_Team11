@@ -191,6 +191,7 @@ else:
         x="Điểm hạnh phúc trung bình",
         y="Region",
         color="Region",
+        color_discrete_map=REGION_COLORS,
         orientation="h",
         text_auto=".2f",
         labels={"Region": "Khu vực"},
@@ -203,6 +204,29 @@ else:
         yaxis_title="",
     )
     st.plotly_chart(score_chart, use_container_width=True)
+    if len(region_summary) == 1:
+        score_comment = (
+            f"Với bộ lọc hiện tại, chỉ còn {region_summary.iloc[0]['Region']} "
+            "nên biểu đồ cho thấy mức điểm của khu vực này, chưa thể so sánh "
+            "với các khu vực khác."
+        )
+    else:
+        highest_score_region = region_summary.iloc[0]
+        lowest_score_region = region_summary.iloc[-1]
+        score_period = (
+            "giai đoạn được chọn"
+            if selected_year == "Tất cả năm"
+            else f"năm {selected_year}"
+        )
+        score_comment = (
+            f"Trong {score_period}, "
+            f"{highest_score_region['Region']} đang có điểm trung bình cao nhất, "
+            f"còn {lowest_score_region['Region']} thấp nhất. Chênh lệch giữa "
+            "các mức trung bình cho thấy trải nghiệm hạnh phúc có thể khác "
+            "nhau theo khu vực; tuy nhiên, điểm trung bình không đại diện cho "
+            "mọi quốc gia hay mọi người dân trong khu vực."
+        )
+    st.info(f"**Nhận xét**\n\n{score_comment}")
 
 st.subheader("Số quốc gia theo khu vực")
 count_chart = px.bar(
@@ -210,6 +234,7 @@ count_chart = px.bar(
     x="Số quốc gia",
     y="Region",
     color="Region",
+    color_discrete_map=REGION_COLORS,
     orientation="h",
     text="Số quốc gia",
     labels={"Region": "Khu vực"},
@@ -217,6 +242,26 @@ count_chart = px.bar(
 )
 count_chart.update_layout(height=460, showlegend=False, yaxis_title="")
 st.plotly_chart(count_chart, use_container_width=True)
+if len(region_summary) == 1:
+    count_comment = (
+        f"Bộ lọc hiện tại chỉ có dữ liệu cho {region_summary.iloc[0]['Region']}; "
+        "vì vậy chưa thể nhận xét khu vực nào có độ phủ quốc gia lớn hơn."
+    )
+else:
+    most_countries = region_summary.loc[region_summary["Số quốc gia"].idxmax()]
+    fewest_countries = region_summary.loc[region_summary["Số quốc gia"].idxmin()]
+    count_period = (
+        "toàn bộ giai đoạn"
+        if selected_year == "Tất cả năm"
+        else f"năm {selected_year}"
+    )
+    count_comment = (
+        f"Trong {count_period}, {most_countries['Region']} có độ phủ quốc gia "
+        f"lớn nhất trong dữ liệu, còn {fewest_countries['Region']} ít nhất. "
+        "Đây là số quốc gia được ghi nhận, không phải quy mô dân số hay mức "
+        "hạnh phúc; khu vực có nhiều quốc gia hơn không mặc nhiên hạnh phúc hơn."
+    )
+st.info(f"**Nhận xét**\n\n{count_comment}")
 
 st.subheader("So sánh nhiều quốc gia")
 # Cho phép chọn ít nhất hai quốc gia để vẽ đường thay đổi theo thời gian.
@@ -251,6 +296,66 @@ if len(selected_countries) >= 2:
         comparison_chart.update_xaxes(dtick=1)
         comparison_chart.update_layout(height=480)
         st.plotly_chart(comparison_chart, use_container_width=True)
+        country_summaries = []
+        for country, country_data in comparison_data.groupby("Country"):
+            country_data = country_data.sort_values("Year")
+            if len(country_data) >= 2:
+                country_summaries.append(
+                    {
+                        "Country": country,
+                        "Start": country_data.iloc[0]["Happiness Score"],
+                        "End": country_data.iloc[-1]["Happiness Score"],
+                        "Change": (
+                            country_data.iloc[-1]["Happiness Score"]
+                            - country_data.iloc[0]["Happiness Score"]
+                        ),
+                    }
+                )
+        latest_country_scores = (
+            comparison_data.sort_values("Year")
+            .groupby("Country", as_index=False)
+            .tail(1)
+            .sort_values("Happiness Score", ascending=False)
+        )
+        if country_summaries:
+            greatest_rise = max(
+                country_summaries, key=lambda summary: summary["Change"]
+            )
+            greatest_fall = min(
+                country_summaries, key=lambda summary: summary["Change"]
+            )
+            if greatest_rise["Change"] > 0:
+                change_comment = (
+                    f"{greatest_rise['Country']} có mức cải thiện rõ nhất trong "
+                    "nhóm được chọn"
+                )
+            else:
+                change_comment = (
+                    "không quốc gia nào trong nhóm có mức tăng qua các mốc "
+                    "được ghi nhận"
+                )
+            if greatest_fall["Change"] < 0:
+                change_comment += (
+                    f", trong khi {greatest_fall['Country']} giảm nhiều nhất"
+                )
+            else:
+                change_comment += (
+                    "; các quốc gia trong nhóm đều giữ mức điểm ổn định hoặc "
+                    "tăng lên"
+                )
+            comparison_comment = (
+                f"Ở lần ghi nhận gần nhất, {latest_country_scores.iloc[0]['Country']} "
+                f"đang có điểm cao nhất trong nhóm. Nhìn theo thời gian, "
+                f"{change_comment}. Các đường đi khác nhau nhắc rằng xu hướng "
+                "chung không nhất thiết phản ánh trải nghiệm của từng quốc gia."
+            )
+        else:
+            comparison_comment = (
+                "Chưa đủ dữ liệu ở nhiều năm cho các quốc gia đã chọn để nhận "
+                "xét xu hướng tăng giảm; biểu đồ hiện chủ yếu giúp so sánh "
+                "các lần ghi nhận đang có."
+            )
+        st.info(f"**Nhận xét**\n\n{comparison_comment}")
         st.dataframe(
             comparison_data.sort_values(["Country", "Year"])[
                 ["Year", "Country", "Region", "Happiness Rank", "Happiness Score"]
@@ -284,6 +389,59 @@ if selected_year == "Tất cả năm" and not selected_regions:
     trend_chart.update_xaxes(dtick=1)
     trend_chart.update_layout(height=480)
     st.plotly_chart(trend_chart, use_container_width=True)
+    region_changes = []
+    for region, region_data in trend_data.groupby("Region"):
+        region_data = region_data.sort_values("Year")
+        if len(region_data) >= 2:
+            region_changes.append(
+                {
+                    "Region": region,
+                    "Change": (
+                        region_data.iloc[-1]["Happiness Score"]
+                        - region_data.iloc[0]["Happiness Score"]
+                    ),
+                    "Range": (
+                        region_data["Happiness Score"].max()
+                        - region_data["Happiness Score"].min()
+                    ),
+                }
+            )
+    if region_changes:
+        largest_rise = max(region_changes, key=lambda item: item["Change"])
+        smallest_rise = min(region_changes, key=lambda item: item["Change"])
+        most_steady = min(region_changes, key=lambda item: item["Range"])
+        if largest_rise["Change"] > 0:
+            trend_comment = (
+                f"{largest_rise['Region']} có xu hướng cải thiện rõ nhất trong "
+                "các khu vực"
+            )
+        else:
+            trend_comment = (
+                "các khu vực nhìn chung không cho thấy mức tăng rõ rệt giữa "
+                "đầu và cuối giai đoạn"
+            )
+        if smallest_rise["Change"] < 0:
+            trend_comment += (
+                f", còn {smallest_rise['Region']} là khu vực giảm nhiều nhất"
+            )
+        else:
+            trend_comment += (
+                f"; {most_steady['Region']} có đường xu hướng ổn định nhất"
+            )
+        trend_comment += (
+            ". Các đường không biến động đồng đều, cho thấy mỗi khu vực có "
+            "nhịp thay đổi riêng; mức trung bình khu vực cũng có thể che khuất "
+            "khác biệt giữa các quốc gia."
+        )
+    else:
+        trend_comment = (
+            "Chưa có đủ các mốc năm để so sánh diễn biến của từng khu vực."
+        )
+    trend_period = (
+        f"từ {int(trend_data['Year'].min())} đến {int(trend_data['Year'].max())}"
+    )
+    trend_comment = f"Trong giai đoạn {trend_period}, {trend_comment}"
+    st.info(f"**Nhận xét**\n\n{trend_comment}")
 
 st.subheader("Dữ liệu theo khu vực")
 st.dataframe(

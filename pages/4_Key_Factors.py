@@ -79,6 +79,20 @@ factor_labels = {
     "Perceptions of corruption": "Nhận thức về tham nhũng",
 }
 
+
+def describe_correlation(value: float) -> str:
+    if abs(value) < 0.2:
+        return "yếu, chưa tạo thành xu hướng tuyến tính rõ"
+    direction = "cùng chiều" if value > 0 else "ngược chiều"
+    if abs(value) >= 0.7:
+        strength = "mạnh"
+    elif abs(value) >= 0.4:
+        strength = "vừa phải"
+    else:
+        strength = "nhẹ"
+    return f"{direction} {strength}"
+
+
 st.subheader("Ma trận tương quan")
 # Loại bỏ cột hoàn toàn rỗng trước khi tính hệ số tương quan Pearson.
 corr_data = filtered[factor_columns].dropna(axis=1, how="all")
@@ -94,9 +108,8 @@ else:
             for right in correlation.columns[left_index + 1 :]:
                 value = correlation.loc[left, right]
                 if pd.notna(value):
-                    pair_count = corr_data[[left, right]].dropna().shape[0]
                     correlation_pairs.append(
-                        (left, right, float(value), pair_count)
+                        (left, right, float(value))
                     )
 
         correlation = correlation.rename(
@@ -116,22 +129,40 @@ else:
         heatmap.update_layout(height=620)
         st.plotly_chart(heatmap, use_container_width=True)
         if correlation_pairs:
-            highest_pair = max(correlation_pairs, key=lambda pair: pair[2])
-            lowest_pair = min(correlation_pairs, key=lambda pair: pair[2])
+            clearest_pair = max(
+                correlation_pairs, key=lambda pair: abs(pair[2])
+            )
+            faintest_pair = min(
+                correlation_pairs, key=lambda pair: abs(pair[2])
+            )
+            if any(pair[2] < 0 for pair in correlation_pairs):
+                sign_summary = (
+                    "Có cả những mối liên hệ cùng chiều lẫn ngược chiều, nên "
+                    "các chỉ số không cùng biến động theo một cách duy nhất."
+                )
+            else:
+                sign_summary = (
+                    "Các mối liên hệ quan sát được chủ yếu cùng chiều; điều đó "
+                    "không có nghĩa mọi chỉ số đều tăng giảm đồng thời ở mọi "
+                    "quốc gia."
+                )
             st.info(
-                "**Nhận xét chi tiết**\n\n"
-                f"Ma trận đang phản ánh {len(filtered)} bản ghi trong "
-                f"{filter_scope}. Cặp có hệ số cao nhất là "
-                f"**{factor_labels[highest_pair[0]]} – "
-                f"{factor_labels[highest_pair[1]]}** "
-                f"(r = {highest_pair[2]:.3f}, n = {highest_pair[3]}); "
-                f"cặp có hệ số thấp nhất là **{factor_labels[lowest_pair[0]]} – "
-                f"{factor_labels[lowest_pair[1]]}** "
-                f"(r = {lowest_pair[2]:.3f}, n = {lowest_pair[3]}). "
-                "Hệ số dương biểu thị xu hướng cùng chiều, hệ số âm là ngược "
-                "chiều; |r| càng gần 1 thì liên hệ tuyến tính càng rõ, còn gần "
-                "0 thì liên hệ tuyến tính càng yếu. Đường chéo bằng 1 vì mỗi "
-                "chỉ số được so sánh với chính nó."
+                "**Nhận xét**\n\n"
+                f"Trong {filter_scope}, cặp có mối liên hệ tuyến tính rõ nhất "
+                f"là **{factor_labels[clearest_pair[0]]} – "
+                f"{factor_labels[clearest_pair[1]]}** "
+                f"(liên hệ {describe_correlation(clearest_pair[2])}); cặp "
+                f"mờ nhạt nhất là **{factor_labels[faintest_pair[0]]} – "
+                f"{factor_labels[faintest_pair[1]]}** "
+                f"({describe_correlation(faintest_pair[2])}). {sign_summary} "
+                "Các ô màu thể hiện mức độ liên hệ tuyến tính trong dữ liệu, "
+                "không cho biết chỉ số nào gây ra thay đổi ở chỉ số khác."
+            )
+        else:
+            st.info(
+                "**Nhận xét**\n\n"
+                f"Trong {filter_scope}, các chỉ số chưa có đủ biến thiên để "
+                "làm nổi bật mối liên hệ tuyến tính giữa từng cặp."
             )
 
 st.subheader("Các chỉ số tương quan với điểm hạnh phúc")
@@ -172,19 +203,26 @@ if "Happiness Score" in filtered:
             coloraxis_showscale=False,
         )
         st.plotly_chart(correlation_chart, use_container_width=True)
-        highest_score_correlation = score_correlations.iloc[-1]
-        lowest_score_correlation = score_correlations.iloc[0]
+        score_correlation_values = [
+            (row["Chỉ số"], float(row["Hệ số tương quan Pearson"]))
+            for _, row in score_correlations.iterrows()
+        ]
+        clearest_score_factor = max(
+            score_correlation_values, key=lambda item: abs(item[1])
+        )
+        faintest_score_factor = min(
+            score_correlation_values, key=lambda item: abs(item[1])
+        )
         st.info(
-            "**Nhận xét chi tiết**\n\n"
-            f"Trong {filter_scope}, chỉ số có hệ số tương quan cao nhất với "
-            f"điểm hạnh phúc là **{highest_score_correlation['Chỉ số']}** "
-            f"(r = {highest_score_correlation['Hệ số tương quan Pearson']:.3f}); "
-            f"hệ số thấp nhất là **{lowest_score_correlation['Chỉ số']}** "
-            f"(r = {lowest_score_correlation['Hệ số tương quan Pearson']:.3f}). "
-            "Hệ số dương cho thấy hai chỉ số có xu hướng tăng cùng chiều trong "
-            "dữ liệu; hệ số âm cho thấy xu hướng ngược chiều. Hệ số gần 0 thể "
-            "hiện ít liên hệ tuyến tính hơn. Đây là tương quan, không chứng minh "
-            "chỉ số đó gây ra thay đổi về hạnh phúc."
+            "**Nhận xét**\n\n"
+            f"Trong {filter_scope}, **{clearest_score_factor[0]}** là chỉ số "
+            f"có mối liên hệ tuyến tính rõ nhất với điểm hạnh phúc "
+            f"({describe_correlation(clearest_score_factor[1])}); "
+            f"**{faintest_score_factor[0]}** ít thể hiện mối liên hệ tuyến tính "
+            f"hơn ({describe_correlation(faintest_score_factor[1])}). Vì vậy, "
+            "biểu đồ gợi ý chỉ số nào đáng được chú ý trong phạm vi đang xem, "
+            "nhưng không thể kết luận chỉ số đó quyết định mức hạnh phúc hay "
+            "có tác động giống nhau ở mọi khu vực."
         )
 
 st.subheader("Pairplot các yếu tố")
@@ -238,18 +276,36 @@ else:
             if pd.notna(pairplot_correlations.loc[left, right])
         ]
         if pairplot_pairs:
-            strongest_pair = max(pairplot_pairs, key=lambda pair: abs(pair[2]))
+            strongest_pair = max(
+                pairplot_pairs, key=lambda pair: abs(pair[2])
+            )
+            if pairplot_data["Region"].nunique() > 1:
+                region_observation = (
+                    "Màu sắc phân biệt các khu vực, giúp quan sát mức độ tập "
+                    "trung và chồng lấp của các nhóm trên từng ô."
+                )
+            else:
+                region_observation = (
+                    "Do bộ lọc chỉ còn một khu vực, màu sắc không còn dùng để "
+                    "so sánh giữa các khu vực."
+                )
             st.info(
-                "**Nhận xét chi tiết**\n\n"
-                f"Pairplot gồm {len(pairplot_data)} bản ghi đầy đủ, "
-                f"{pairplot_data['Country'].nunique()} quốc gia và "
-                f"{pairplot_data['Region'].nunique()} khu vực trong "
-                f"{filter_scope}. Trong các chỉ số đang chọn, cặp có liên hệ "
+                "**Nhận xét**\n\n"
+                f"Với các chỉ số đã chọn trong {filter_scope}, cặp có xu hướng "
                 f"tuyến tính rõ nhất là **{factor_labels[strongest_pair[0]]} – "
                 f"{factor_labels[strongest_pair[1]]}** "
-                f"(r = {strongest_pair[2]:.3f}). Các điểm được tô màu theo "
-                "khu vực để quan sát sự phân bố và chồng lấp giữa các nhóm; "
-                "mối liên hệ quan sát được không khẳng định quan hệ nhân quả. "
-                "Nếu chọn tất cả các năm, một quốc gia có thể xuất hiện ở "
-                "nhiều điểm."
+                f"({describe_correlation(strongest_pair[2])}). "
+                f"{region_observation} Các điểm vẫn có độ phân tán, nên không "
+                "phải quốc gia nào cũng đi theo xu hướng chung; các mối liên "
+                "hệ này cũng không chứng minh quan hệ nhân quả. "
+                "Khi xem tất cả các năm, một quốc gia có thể xuất hiện ở nhiều "
+                "điểm."
+            )
+        else:
+            st.info(
+                "**Nhận xét**\n\n"
+                f"Pairplot đang dùng các chỉ số đã chọn trong {filter_scope}, "
+                "nhưng dữ liệu chưa cho thấy cặp nào có mối liên hệ tuyến tính "
+                "đủ rõ để nêu bật. Có thể tiếp tục xem phân bố từng ô và cách "
+                "các điểm được nhóm theo khu vực."
             )

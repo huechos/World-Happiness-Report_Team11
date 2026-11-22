@@ -12,8 +12,6 @@ Dữ liệu của đề tài được lưu dưới dạng tệp CSV theo từng 
 
 \begin{table}[H]
 \centering
-\caption{Cấu trúc dữ liệu chính của dự án}
-\label{tab:co-cau-du-lieu}
 \begin{tabular}{|p{4cm}|p{8.5cm}|}
 \hline
 \textbf{Nhóm dữ liệu} & \textbf{Tên trường/chức năng} \\
@@ -29,7 +27,8 @@ Yếu tố xã hội & Social support, Life Expectancy, Freedom \\
 Yếu tố hành vi và nhận thức & Generosity, Perceptions of corruption \\
 \hline
 \end{tabular}
-\Nguon{Dữ liệu dự án sau khi tiền xử lý}
+\caption{Cấu trúc dữ liệu chính của dự án}
+\label{tab:co-cau-du-lieu}
 \end{table}
 
 Bảng \ref{tab:co-cau-du-lieu} liệt kê các trường được sử dụng thống nhất trong dashboard. Một số tệp gốc còn chứa các cột bổ sung như khoảng tin cậy, độ dư Dystopia hoặc sai số chuẩn. Vì các cột này không có đầy đủ ở mọi năm nên không được sử dụng làm chỉ số phân tích chung.
@@ -59,9 +58,10 @@ Khi tải dữ liệu cho dashboard, \textit{dashboard\_utils.py} tiếp tục c
 
 \subsection{Quy trình tiền xử lý tổng quát}
 
+\vspace{\baselineskip}
 \begin{sodo}[H]
 \centering
-\fbox{\parbox[c][5.2cm][c]{0.82\textwidth}{\centering
+\fbox{\parbox[c][8.2cm][c]{0.88\textwidth}{\centering
 \textbf{1. Đọc năm tệp CSV}\\[0.25cm]
 $\downarrow$\\[0.2cm]
 \textbf{2. Chuẩn hóa tên cột và tên quốc gia}\\[0.25cm]
@@ -72,9 +72,10 @@ $\downarrow$\\[0.2cm]
 $\downarrow$\\[0.2cm]
 \textbf{5. Nạp vào dashboard}
 }}
-\SodoCaption{Quy trình tiền xử lý dữ liệu}{Nhóm 11 tự xây dựng}
+\SodoCaption{Quy trình tiền xử lý dữ liệu}
 \label{fig:quy-trinh-tien-xu-ly}
 \end{sodo}
+\vspace{\baselineskip}
 
 \section{Kiến trúc và công nghệ triển khai}
 
@@ -84,8 +85,6 @@ $\downarrow$\\[0.2cm]
 
 \begin{table}[H]
 \centering
-\caption{Vai trò của các thành phần trong hệ thống}
-\label{tab:thanh-phan-he-thong}
 \begin{tabular}{|p{4cm}|p{8.5cm}|}
 \hline
 \textbf{Thành phần} & \textbf{Vai trò} \\
@@ -101,7 +100,8 @@ pages/ & Chứa các trang Overview, Trends, Regional Analysis, Key Factors và 
 data/ & Lưu dữ liệu năm 2015--2019. \\
 \hline
 \end{tabular}
-\Nguon{Nhóm 11 tổng hợp từ mã nguồn dự án}
+\caption{Vai trò của các thành phần trong hệ thống}
+\label{tab:thanh-phan-he-thong}
 \end{table}
 
 \subsection{Công cụ và thư viện}

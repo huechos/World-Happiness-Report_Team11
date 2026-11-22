@@ -125,11 +125,11 @@
     justification=centering
 }
 \captionsetup[table]{name=Bảng,position=top}
-\captionsetup[figure]{name=Hình,position=bottom}
+\captionsetup[figure]{name=Ảnh,position=bottom}
 \captionsetup[sodo]{name=Sơ đồ,position=bottom}
 
 \renewcommand{\listtablename}{BẢNG}
-\renewcommand{\listfigurename}{HÌNH, SƠ ĐỒ}
+\renewcommand{\listfigurename}{ẢNH, SƠ ĐỒ}
 \renewcommand{\contentsname}{MỤC LỤC}
 \renewcommand{\bibname}{TÀI LIỆU THAM KHẢO}
 
@@ -193,7 +193,9 @@
 
 \makeatletter
 \newcommand{\ReportListTable}[4]{%
-    {\bfseries\fontsize{13pt}{14pt}\selectfont #1:\par}
+    \noindent
+    \makebox[\textwidth][l]{\bfseries\fontsize{13pt}{14pt}\selectfont #1:}
+    \par
     \vspace{6pt}
     \begingroup
     \fontsize{12pt}{13pt}\selectfont
@@ -222,13 +224,13 @@
 }
 
 \newcommand{\CombinedLists}{%
-    \chapter*{\fontsize{13pt}{14pt}\selectfont DANH MỤC CÁC BẢNG, SƠ ĐỒ, HÌNH}
-    \addcontentsline{toc}{chapter}{DANH MỤC CÁC BẢNG, SƠ ĐỒ, HÌNH}
+    \chapter*{\fontsize{13pt}{14pt}\selectfont DANH MỤC CÁC BẢNG, SƠ ĐỒ, ẢNH}
+    \addcontentsline{toc}{chapter}{DANH MỤC CÁC BẢNG, SƠ ĐỒ, ẢNH}
     \ReportListTable{BẢNG}{Tên bảng}{Bảng}{lot}
     \vspace{14pt}
     \ReportListTable{SƠ ĐỒ}{Tên sơ đồ}{Sơ đồ}{los}
     \vspace{14pt}
-    \ReportListTable{HÌNH}{Tên hình}{Hình}{lof}
+    \ReportListTable{ẢNH}{Tên ảnh}{Ảnh}{lof}
 }
 \makeatother
 
@@ -277,10 +279,9 @@
     {\centering\itshape Nguồn: #1\par}
 }
 
-% Với môi trường sodo của gói float, caption luôn được dồn xuống cuối.
-% Gộp nguồn vào caption để bảo đảm thứ tự hiển thị: tên sơ đồ, rồi đến nguồn.
-\newcommand{\SodoCaption}[2]{%
-    \caption[#1]{#1\\[3pt]\textit{Nguồn: #2}}%
+% Tên sơ đồ luôn được đặt dưới nội dung sơ đồ.
+\newcommand{\SodoCaption}[1]{%
+    \caption{#1}%
 }
 
 % =========================

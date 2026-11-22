@@ -18,8 +18,6 @@ Các cột có tên khác nhau giữa các năm đã được đổi thành tên
 
 \begin{table}[H]
 \centering
-\caption{Quy mô dữ liệu theo từng năm}
-\label{tab:quy-mo-du-lieu}
 \begin{tabular}{|c|c|c|}
 \hline
 \textbf{Năm} & \textbf{Số quốc gia} & \textbf{Điểm hạnh phúc trung bình} \\
@@ -35,7 +33,8 @@ Các cột có tên khác nhau giữa các năm đã được đổi thành tên
 2019 & 156 & 5.4071 \\
 \hline
 \end{tabular}
-\Nguon{Tính toán từ các tệp dữ liệu 2015--2019}
+\caption{Quy mô dữ liệu theo từng năm}
+\label{tab:quy-mo-du-lieu}
 \end{table}
 
 Bảng \ref{tab:quy-mo-du-lieu} cho thấy quy mô dữ liệu ổn định trong giai đoạn nghiên cứu, dao động từ 155 đến 158 quốc gia mỗi năm. Điểm hạnh phúc trung bình của toàn bộ quan sát năm 2015--2019 dao động trong khoảng 5.3540--5.4071, vì vậy biên độ thay đổi trung bình qua các năm không lớn.
@@ -48,8 +47,6 @@ Các quốc gia có điểm hạnh phúc cao nhất năm 2019 gồm Phần Lan, 
 
 \begin{table}[H]
 \centering
-\caption{Nhóm quốc gia tiêu biểu năm 2019}
-\label{tab:quoc-gia-tieu-bieu}
 \begin{tabular}{|p{5.2cm}|c|p{5.2cm}|c|}
 \hline
 \multicolumn{2}{|c|}{\textbf{Nhóm điểm cao}} & \multicolumn{2}{c|}{\textbf{Nhóm điểm thấp}} \\
@@ -67,7 +64,8 @@ Iceland & 7.494 & Tanzania & 3.231 \\
 Netherlands & 7.488 & Rwanda & 3.334 \\
 \hline
 \end{tabular}
-\Nguon{Dữ liệu World Happiness Report năm 2019}
+\caption{Nhóm quốc gia tiêu biểu năm 2019}
+\label{tab:quoc-gia-tieu-bieu}
 \end{table}
 
 Biểu hiện của bản đồ và bảng dữ liệu hỗ trợ người dùng chuyển đổi nhanh giữa góc nhìn toàn cầu và góc nhìn khu vực. Lựa chọn khu vực không làm thay đổi dữ liệu gốc mà chỉ lọc các bản ghi phù hợp trong giao diện.
@@ -90,6 +88,13 @@ So với năm 2015, điểm trung bình năm 2019 tăng khoảng 0.0314 điểm.
 
 Biểu đồ vùng của ứng dụng giúp làm nổi bật năm cao nhất và thấp nhất. Trục tung của biểu đồ vùng được giới hạn phù hợp để các biến động nhỏ được quan sát rõ hơn. Do đây là chênh lệch rất nhỏ so với thang điểm, người xem cần đối chiếu cả nhãn số trên các điểm thay vì chỉ nhìn hình dạng của vùng.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{images/bieu-do-xu-huong-hanh-phuc.png}
+\caption{Xu hướng điểm hạnh phúc trung bình giai đoạn 2015--2019}
+\label{fig:xu-huong-hanh-phuc}
+\end{figure}
+
 \subsection{Tương quan giữa GDP, tuổi thọ và điểm hạnh phúc}
 
 Biểu đồ phân tán cho phép người dùng chọn GDP bình quân đầu người hoặc tuổi thọ khỏe mạnh làm trục ngang. Khi lọc từng năm, hệ thống tính hệ số tương quan Pearson giữa trục đã chọn và điểm hạnh phúc.
@@ -104,8 +109,6 @@ Trang Regional Analysis tính điểm hạnh phúc trung bình và số quốc g
 
 \begin{table}[H]
 \centering
-\caption{Điểm hạnh phúc trung bình theo khu vực năm 2019}
-\label{tab:khu-vuc-2019}
 \begin{tabular}{|p{6.2cm}|c|c|}
 \hline
 \textbf{Khu vực} & \textbf{Điểm trung bình} & \textbf{Số quốc gia} \\
@@ -131,10 +134,18 @@ Southern Asia & 4.5269 & 7 \\
 Sub-Saharan Africa & 4.3001 & 40 \\
 \hline
 \end{tabular}
-\Nguon{Tính toán từ dữ liệu năm 2019}
+\caption{Điểm hạnh phúc trung bình theo khu vực năm 2019}
+\label{tab:khu-vuc-2019}
 \end{table}
 
 Cần lưu ý rằng số quốc gia trong mỗi khu vực khác nhau. Vì vậy, điểm trung bình của khu vực có hai quốc gia chỉ phản ánh chính xác nhóm nhỏ này trong dữ liệu, không nên suy rộng thành kết luận về toàn bộ dân số khu vực.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{images/bieu-do-khu-vuc-2019.png}
+\caption{So sánh điểm hạnh phúc trung bình theo khu vực năm 2019}
+\label{fig:khu-vuc-2019}
+\end{figure}
 
 Trang khu vực còn hỗ trợ chọn nhiều quốc gia để so sánh điểm hạnh phúc theo từng năm. Khi chọn ít nhất hai quốc gia, ứng dụng tạo biểu đồ đường với trục ngang là năm và trục dọc là điểm hạnh phúc. Chức năng này giúp nhận biết quốc gia tăng, giảm hay duy trì điểm số tương đối ổn định.
 
@@ -157,8 +168,6 @@ Với toàn bộ dữ liệu giai đoạn 2015--2019, các hệ số tương qua
 
 \begin{table}[H]
 \centering
-\caption{Tương quan Pearson với điểm hạnh phúc}
-\label{tab:tuong-quan-yếu-to}
 \begin{tabular}{|p{6cm}|c|p{4cm}|}
 \hline
 \textbf{Yếu tố} & \textbf{Hệ số $r$} & \textbf{Mức liên hệ tuyến tính} \\
@@ -176,10 +185,18 @@ Perceptions of corruption & 0.3973 & Yếu đến vừa \\
 Generosity & 0.1376 & Rất yếu \\
 \hline
 \end{tabular}
-\Nguon{Tính toán trên dữ liệu 2015--2019}
+\caption{Tương quan Pearson với điểm hạnh phúc}
+\label{tab:tuong-quan-yếu-to}
 \end{table}
 
 Kết quả cho thấy GDP bình quân đầu người có liên hệ tuyến tính mạnh nhất trong các yếu tố được khảo sát, tiếp theo là tuổi thọ khỏe mạnh và hỗ trợ xã hội. Sự hào phóng có hệ số dương nhưng liên hệ tuyến tính rất yếu.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{images/bieu-do-tuong-quan-yeu-to.png}
+\caption{Tương quan Pearson giữa các yếu tố và điểm hạnh phúc}
+\label{fig:tuong-quan-yeu-to}
+\end{figure}
 
 Ma trận tương quan cũng cho thấy các yếu tố kinh tế và xã hội thường có xu hướng liên quan với nhau. Tuy nhiên, hệ số tương quan không thể được dùng để khẳng định một yếu tố là nguyên nhân trực tiếp làm thay đổi điểm hạnh phúc.
 

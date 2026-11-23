@@ -10,9 +10,9 @@ Nhóm sử dụng dữ liệu của giai đoạn 2015--2019, triển khai ứng 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{images/dashboard-overview.png}
 \caption{Tổng quan hệ thống trực quan hóa dữ liệu World Happiness Report}
 \label{fig:tong-quan-de-tai}
+\includegraphics[width=0.92\textwidth]{images/dashboard-overview.png}
 \end{figure}
 
 \section{Lý do chọn đề tài}
@@ -102,3 +102,46 @@ Về mặt ứng dụng, dashboard hỗ trợ người dùng không cần đọc
 \section{Cấu trúc báo cáo}
 
 Bài tập lớn được trình bày trong ba chương chính. Chương 1 giới thiệu đề tài, bối cảnh, mục tiêu, phạm vi và nhiệm vụ nghiên cứu. Chương 2 trình bày tổng quan dữ liệu, quy trình tiền xử lý, phương pháp phân tích, công cụ và kiến trúc hệ thống. Chương 3 trình bày kết quả trên từng trang dashboard, phân tích nhận xét thu được và đánh giá sản phẩm.
+
+\section{Yêu cầu nghiệp vụ của hệ thống}
+
+\subsection{Yêu cầu chức năng}
+
+Hệ thống cần đáp ứng các yêu cầu sau:
+
+\begin{itemize}
+    \item Tự động nạp dữ liệu World Happiness Report theo từng năm trong thư mục \textit{data}.
+    \item Chuẩn hóa các tên cột khác nhau để dashboard sử dụng một bộ tên trường thống nhất.
+    \item Cho phép người dùng chọn năm, khu vực và quốc gia cần phân tích.
+    \item Hiển thị thống kê tổng quan gồm số bản ghi, số quốc gia, số khu vực và điểm hạnh phúc trung bình.
+    \item Vẽ bản đồ, biểu đồ đường, biểu đồ cột, biểu đồ phân tán, heatmap và pairplot.
+    \item Tính hệ số tương quan Pearson khi người dùng thay đổi năm hoặc phạm vi dữ liệu.
+    \item Cho phép so sánh điểm hạnh phúc của nhiều quốc gia trong cùng một biểu đồ.
+    \item Cung cấp nội dung nhận xét mô tả cùng kết quả trực quan.
+\end{itemize}
+
+\subsection{Yêu cầu phi chức năng}
+
+Dashboard cần có giao diện nhất quán, dễ hiểu và có khả năng cập nhật kết quả ngay khi người dùng thay đổi bộ lọc. Mỗi trang nên sử dụng tiêu đề rõ ràng, nhãn trục dễ đọc và bảng màu thống nhất. Dữ liệu phải được xử lý trước khi vẽ để tránh lỗi khi gặp giá trị không phải số. Thời gian tải trang nên ngắn với tập dữ liệu khoảng 150--158 quốc gia mỗi năm.
+
+\subsection{Luồng sử dụng cơ bản}
+
+Người dùng bắt đầu tại trang chủ để nắm số liệu tổng quan. Tiếp theo, người dùng có thể mở trang Overview để xem chi tiết từng năm, trang Trends để quan sát xu hướng, trang Regional Analysis để so sánh khu vực, trang Key Factors để phân tích các yếu tố hoặc trang Advanced Insights để khám phá dữ liệu nâng cao.
+
+\section{Phân tích tính khả thi}
+
+\subsection{Tính khả thi về dữ liệu}
+
+Dữ liệu dự án là các tệp CSV dạng bảng, kích thước vừa phải và không yêu cầu cơ sở dữ liệu ngoài. Nhóm có thể đọc trực tiếp bằng Pandas, lưu dữ liệu chung trong bộ nhớ và tính toán lại khi người dùng thay đổi bộ lọc. Việc sử dụng dữ liệu tĩnh cũng giúp kết quả dễ tái lập.
+
+\subsection{Tính khả thi về kỹ thuật}
+
+Python có nhiều thư viện phù hợp cho xử lý dữ liệu và trực quan hóa. Streamlit cho phép triển khai giao diện mà không cần viết frontend và backend riêng. Plotly hỗ trợ tương tác đặt trỏ chuột, thu phóng và chọn điểm dữ liệu. Do đó, nhóm có thể hoàn thành dashboard trong phạm vi thời gian của bài tập lớn.
+
+\subsection{Tính khả thi về người dùng}
+
+Người dùng không cần thành thạo lập trình để xem dữ liệu; các thao tác chính chỉ gồm chọn năm, khu vực, quốc gia hoặc khoảng điểm. Bố cục nhiều trang giúp tách câu hỏi phân tích thành từng luồng rõ ràng. Thông tin dữ liệu được trình bày bằng biểu đồ và bảng thay vì yêu cầu người dùng đọc trực tiếp tệp CSV.
+
+\section{Tiêu chí đánh giá kết quả}
+
+Sản phẩm được đánh giá theo sáu tiêu chí. Thứ nhất, dữ liệu sau tiền xử lý phải thống nhất và đủ bốn trường thông tin bắt buộc. Thứ hai, số liệu thống kê phải khớp với dữ liệu gốc sau khi lọc. Thứ ba, các biểu đồ phải thể hiện đúng loại quan hệ hoặc xu hướng cần phân tích. Thứ tư, giao diện phải có khả năng điều hướng và phản hồi khi thay đổi bộ lọc. Thứ năm, nhận xét phải được rút ra trực tiếp từ kết quả quan sát và không sử dụng ngôn ngữ khẳng định nhân quả. Thứ sáu, ứng dụng phải có thể chạy lại trong môi trường Python đã cài các thư viện khai báo trong tệp yêu cầu.

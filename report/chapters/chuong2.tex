@@ -184,3 +184,162 @@ Trang Advanced Insights cung cấp bộ lọc phía thanh bên theo năm, khoả
     \item Tab so sánh theo dõi thay đổi điểm hạnh phúc của tối đa 8 quốc gia.
     \item Tab yếu tố phân tích scatter plot và tổng hợp tương quan của các yếu tố.
 \end{itemize}
+
+\section{Từ điển dữ liệu và quy tắc chuẩn hóa}
+
+\subsection{Từ điển dữ liệu}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4.2cm}|p{2.4cm}|p{5.8cm}|}
+\hline
+\textbf{Tên trường} & \textbf{Kiểu dữ liệu} & \textbf{Ý nghĩa} \\
+\hline
+Country & Chuỗi & Tên quốc gia hoặc vùng lãnh thổ \\
+\hline
+Region & Chuỗi & Khu vực địa lý của quốc gia \\
+\hline
+Year & Số nguyên & Năm của báo cáo \\
+\hline
+Happiness Rank & Số nguyên & Thứ hạng hạnh phúc trong năm \\
+\hline
+Happiness Score & Số thực & Điểm hạnh phúc; dùng làm biến mục tiêu \\
+\hline
+GDP per capita & Số thực & Chỉ số GDP bình quân đầu người \\
+\hline
+Social support & Số thực & Mức độ hỗ trợ xã hội \\
+\hline
+Life Expectancy & Số thực & Tuổi thọ khỏe mạnh dự kiến \\
+\hline
+Freedom & Số thực & Tự do lựa chọn cuộc sống \\
+\hline
+Generosity & Số thực & Mức độ hào phóng \\
+\hline
+Perceptions of corruption & Số thực & Nhận thức về tham nhũng \\
+\hline
+\end{tabular}
+\caption{Từ điển dữ liệu sau chuẩn hóa}
+\label{tab:tu-dien-du-lieu}
+\end{table}
+
+Các tên trường trong Bảng \ref{tab:tu-dien-du-lieu} là tên nội bộ của ứng dụng. Chúng có thể khác với tên cột gốc trong từng tệp CSV. Việc định nghĩa một cấu trúc chung giúp các trang phân tích không phụ thuộc vào tên cột của từng năm.
+
+\subsection{Quy tắc kiểm tra bản ghi}
+
+Mỗi bản ghi cần có tên quốc gia, năm báo cáo và điểm hạnh phúc hợp lệ. Với bản ghi trùng quốc gia trong cùng một năm, chương trình giữ bản ghi có thứ hạng hạnh phúc hợp lý hoặc bản ghi đầu tiên sau khi dữ liệu đã được sắp xếp. Các trường số được ép kiểu bằng \textit{pd.to\_numeric}; giá trị không chuyển đổi được trở thành giá trị thiếu.
+
+Các thao tác kiểm tra gồm:
+
+\begin{itemize}
+    \item Kiểm tra thiếu cột bắt buộc sau khi ánh xạ tên trường.
+    \item Loại trùng quốc gia theo cặp \textit{Country, Year}.
+    \item Kiểm tra điểm hạnh phúc và GDP không nằm ngoài phạm vi số hợp lệ.
+    \item Loại hoặc bổ sung giá trị thiếu theo từng phạm vi phân tích.
+    \item Kiểm tra kết quả gom nhóm không chứa nhóm rỗng trước khi vẽ biểu đồ.
+\end{itemize}
+
+\section{Thiết kế giao diện và luồng điều hướng}
+
+\subsection{Trang chủ}
+
+Trang chủ sử dụng các thẻ thống kê để giới thiệu giai đoạn dữ liệu, số quốc gia, điểm hạnh phúc trung bình và số khu vực. Phần điều hướng hiển thị năm trang phân tích chính nhằm người dùng có thể mở trực tiếp chức năng quan tâm.
+
+\subsection{Thanh điều hướng và bố cục trang}
+
+Ứng dụng sử dụng thanh điều hướng nhiều trang của Streamlit. Các bộ lọc chung được đặt ở thanh bên để người dùng không phải tìm kiếm trong từng khu vực nội dung. Nội dung chính được chia thành các hàng hoặc cột, hỗ trợ hiển thị đồng thời bảng số liệu và biểu đồ.
+
+\subsection{Nguyên tắc hiển thị}
+
+\begin{itemize}
+    \item Giữ tên trục và tên đơn vị nhất quán giữa các trang.
+    \item Đặt tên năm trên biểu đồ để dễ đối chiếu.
+    \item Sử dụng thông điệp hoặc tiêu đề ngắn để mô tả chức năng của từng khu vực.
+    \item Hiển thị giá trị trung bình, số lượng quan sát hoặc khoảng dữ liệu khi kết quả bị lọc.
+    \item Tránh kết luận nhân quả nếu kết quả chỉ đến từ tương quan thống kê.
+\end{itemize}
+
+\section{Hướng dẫn cài đặt và chạy ứng dụng}
+
+\subsection{Yêu cầu môi trường}
+
+Môi trường triển khai cần Python và trình quản lý gói \textit{pip}. Các thư viện chính được khai báo trong tệp \textit{requirements.txt}, gồm Pandas, Streamlit, Plotly và các thư viện hỗ trợ cần thiết.
+
+\subsection{Các bước chạy dự án}
+
+\begin{enumerate}
+    \item Tải mã nguồn từ kho GitHub hoặc sao chép thư mục dự án.
+    \item Mở cửa sổ dòng lệnh tại thư mục gốc \textit{World-Happiness-Report\_Team11}.
+    \item Cài thư viện bằng lệnh: \texttt{pip install -r requirements.txt}.
+    \item Khởi chạy ứng dụng bằng lệnh: \texttt{streamlit run app.py}.
+    \item Mở địa chỉ Streamlit hiển thị trên dòng lệnh để sử dụng dashboard.
+\end{enumerate}
+
+\subsection{Cấu trúc thư mục}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{5.2cm}|p{7.2cm}|}
+\hline
+\textbf{Thư mục/tệp} & \textbf{Chức năng} \\
+\hline
+app.py & Cấu hình trang chủ và điều hướng \\
+\hline
+preprocess.py & Đọc, chuẩn hóa và làm sạch dữ liệu \\
+\hline
+dashboard\_utils.py & Hàm tải dữ liệu và cấu hình giao diện chung \\
+\hline
+pages/ & Các trang phân tích của dashboard \\
+\hline
+data/ & Tệp dữ liệu CSV năm 2015--2019 \\
+\hline
+report/ & Mã nguồn LaTeX của báo cáo \\
+\hline
+requirements.txt & Danh sách thư viện Python \\
+\hline
+\end{tabular}
+\caption{Cấu trúc thư mục dự án}
+\label{tab:cau-truc-thu-muc}
+\end{table}
+
+\section{Giả mã quy trình tiền xử lý}
+
+Quy trình tiền xử lý có thể mô tả bằng các bước sau:
+
+\begin{enumerate}
+    \item Khởi tạo danh sách dữ liệu rỗng theo năm.
+    \item Với từng tệp CSV, đọc dữ liệu và xác định năm tương ứng.
+    \item Thay thế tên cột gốc bằng tên trường thống nhất.
+    \item Ánh xạ tên quốc gia và bổ sung khu vực địa lý.
+    \item Chuyển các trường số sang kiểu số và đánh dấu giá trị không hợp lệ.
+    \item Loại bản ghi trùng quốc gia trong từng năm.
+    \item Sắp xếp dữ liệu theo năm và thứ hạng hạnh phúc.
+    \item Nối các năm thành một bộ dữ liệu chung cho dashboard.
+\end{enumerate}
+
+Chuỗi bước trên giúp phần phân tích chỉ làm việc với một cấu trúc dữ liệu nhất quán. Trong trường hợp tên cột hoặc tên quốc gia thay đổi, logic chuẩn hóa có thể được cập nhật tại module tiền xử lý thay vì sửa riêng từng trang.
+
+\section{Quy trình phân tích dữ liệu trên dashboard}
+
+\subsection{Thực hiện thống kê mô tả}
+
+Với một bộ dữ liệu đã lọc, hệ thống dùng các phép gom nhóm theo năm hoặc khu vực và tính trung bình của trường cần phân tích. Số quan sát được lấy bằng số dòng dữ liệu sau lọc. Đối với top quốc gia, dữ liệu được sắp xếp giảm dần theo điểm hạnh phúc rồi lấy số dòng theo giới hạn hiển thị.
+
+\subsection{Thực hiện tương quan}
+
+Trước khi tính tương quan, hệ thống loại các cặp giá trị thiếu trong hai cột được chọn. Sau đó, \textit{corr()} hoặc công thức Pearson tương ứng được áp dụng để tính hệ số. Kết quả được làm tròn trước khi hiển thị nhằm giúp người dùng đọc dễ hơn.
+
+\subsection{Cập nhật biểu đồ}
+
+Mỗi khi người dùng thay đổi bộ lọc, Streamlit chạy lại phần cần thiết của trang. Dữ liệu trước tiên được lọc theo năm, khu vực hoặc khoảng điểm. Tiếp theo, biểu đồ được xây dựng lại từ dữ liệu đã lọc. Cách này giúp thống kê mô tả và biểu đồ quan sát cùng một phạm vi dữ liệu.
+
+\section{Biện luận về độ tin cậy của kết quả}
+
+Độ tin cậy của kết quả phụ thuộc vào chất lượng dữ liệu gốc, tính đầy đủ của trường cần phân tích và quy mô quan sát. Khi số quan sát lớn, trung bình khu vực và tương quan có xu hướng ổn định hơn. Khi một khu vực hoặc một quốc gia chỉ có ít quan sát, kết luận không nên được mở rộng ra toàn dân số.
+
+Ngoài ra, dữ liệu World Happiness Report phản ánh các thang đo tổng hợp tại thời điểm khảo sát. Các biến có thể liên quan với nhau và chịu tác động của nhiều điều kiện kinh tế -- xã hội. Vì vậy, kết quả tương quan chỉ mô tả mối liên hệ tuyến tính trong tập dữ liệu chứ không xác định nguyên nhân.
+
+\section{Các trường hợp dữ liệu đặc biệt}
+
+Trong quá trình tổng hợp, dữ liệu có thể gặp tên quốc gia thay đổi, thiếu giá trị hoặc trùng bản ghi. Những trường hợp này được xử lý theo nguyên tắc tối thiểu làm sai dữ liệu gốc. Tên bí danh được dùng để nối khu vực với tên quốc gia, giá trị không hợp lệ được chuyển thành giá trị thiếu và bản ghi trùng được loại theo khóa quốc gia -- năm.
+
+Nếu thiếu hoàn toàn một cột ở một năm, trang phân tích vẫn có thể sử dụng các cột còn có. Khi thiếu dữ liệu ở biến đầu vào của tương quan, cặp thiếu sẽ bị loại thay vì thay số thiếu bằng điểm hạnh phúc hoặc trung bình của khu vực.

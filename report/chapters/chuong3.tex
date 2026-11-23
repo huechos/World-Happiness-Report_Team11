@@ -90,9 +90,9 @@ Biểu đồ cho thấy năm 2017 có điểm trung bình thấp nhất, sau đ�
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.88\textwidth]{images/bieu-do-xu-huong-hanh-phuc.png}
 \caption{Xu hướng điểm hạnh phúc trung bình giai đoạn 2015--2019}
 \label{fig:xu-huong-hanh-phuc}
+\includegraphics[width=0.88\textwidth]{images/bieu-do-xu-huong-hanh-phuc.png}
 \end{figure}
 
 \subsection{Tương quan giữa GDP, tuổi thọ và điểm hạnh phúc}
@@ -142,9 +142,9 @@ Cần lưu ý rằng số quốc gia trong mỗi khu vực khác nhau. Vì vậy
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.90\textwidth]{images/bieu-do-khu-vuc-2019.png}
 \caption{So sánh điểm hạnh phúc trung bình theo khu vực năm 2019}
 \label{fig:khu-vuc-2019}
+\includegraphics[width=0.90\textwidth]{images/bieu-do-khu-vuc-2019.png}
 \end{figure}
 
 Trang khu vực còn hỗ trợ chọn nhiều quốc gia để so sánh điểm hạnh phúc theo từng năm. Khi chọn ít nhất hai quốc gia, ứng dụng tạo biểu đồ đường với trục ngang là năm và trục dọc là điểm hạnh phúc. Chức năng này giúp nhận biết quốc gia tăng, giảm hay duy trì điểm số tương đối ổn định.
@@ -193,9 +193,9 @@ Kết quả cho thấy GDP bình quân đầu người có liên hệ tuyến t�
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.88\textwidth]{images/bieu-do-tuong-quan-yeu-to.png}
 \caption{Tương quan Pearson giữa các yếu tố và điểm hạnh phúc}
 \label{fig:tuong-quan-yeu-to}
+\includegraphics[width=0.88\textwidth]{images/bieu-do-tuong-quan-yeu-to.png}
 \end{figure}
 
 Ma trận tương quan cũng cho thấy các yếu tố kinh tế và xã hội thường có xu hướng liên quan với nhau. Tuy nhiên, hệ số tương quan không thể được dùng để khẳng định một yếu tố là nguyên nhân trực tiếp làm thay đổi điểm hạnh phúc.
@@ -266,3 +266,109 @@ Trong thời gian tiếp theo, hệ thống có thể được mở rộng theo 
     \item Cải thiện khả năng truy cập, hỗ trợ thiết bị di động và lưu trạng thái bộ lọc.
     \item Xuất kết quả phân tích thành file Excel, CSV hoặc PDF.
 \end{itemize}
+
+\section{Kịch bản kiểm thử chức năng}
+
+Để đánh giá dashboard, nhóm xây dựng một số kịch bản kiểm thử dựa trên hành vi người dùng. Kết quả kiểm thử được so sánh với dữ liệu đầu vào và các giá trị thống kê mong đợi.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.2cm}|p{5.8cm}|p{3.5cm}|}
+\hline
+\textbf{Trường hợp} & \textbf{Thao tác kiểm thử} & \textbf{Kết quả mong đợi} \\
+\hline
+Tải dữ liệu & Khởi chạy ứng dụng khi đủ năm tệp trong \textit{data} & Nạp đủ dữ liệu 2015--2019 \\
+\hline
+Chọn năm & Chọn năm 2019 trên trang Overview & Hiển thị 156 quốc gia tương ứng \\
+\hline
+Lọc khu vực & Chọn Western Europe & Bảng chỉ còn quốc gia thuộc khu vực \\
+\hline
+Phân tích xu hướng & Chọn toàn bộ giai đoạn trên trang Trends & Tính trung bình theo từng năm \\
+\hline
+Tương quan & Chọn GDP và điểm hạnh phúc & Hiển thị biểu đồ và $r$ cùng chiều \\
+\hline
+So sánh quốc gia & Chọn ba quốc gia và ba năm & Vẽ ba đường xu hướng tương ứng \\
+\hline
+\end{tabular}
+\caption{Kịch bản kiểm thử chính}
+\label{tab:kich-ban-kiem-thu}
+\end{table}
+
+Các kịch bản cho thấy giao diện cần cập nhật đồng bộ khi bộ lọc thay đổi. Một trang hợp lệ không chỉ hiển thị biểu đồ mà còn cần kiểm tra số lượng bản ghi, nhãn trục và giá trị thống kê không bị sai.
+
+\section{Phân tích ví dụ theo từng câu hỏi nghiên cứu}
+
+\subsection{Quốc gia nào có điểm hạnh phúc cao nhất?}
+
+Với dữ liệu năm 2019, Finland đứng đầu với điểm 7.769, tiếp theo là Denmark 7.600 và Norway 7.554. Kết quả phù hợp với thứ hạng hạnh phúc trong tệp dữ liệu gốc. Người dùng có thể kiểm tra lại bằng bảng dữ liệu hoặc biểu đồ bản đồ trên trang Overview.
+
+\subsection{Điểm hạnh phúc thay đổi như thế nào qua các năm?}
+
+Điểm trung bình giảm nhẹ từ 5.3757 năm 2015 xuống 5.3540 năm 2017, sau đó tăng lên 5.4071 năm 2019. Sự thay đổi khoảng 0.0531 điểm giữa mức thấp nhất năm 2017 và mức cao nhất năm 2019 cho thấy xu hướng tổng thể tương đối ổn định trong giai đoạn này.
+
+\subsection{Khu vực nào có điểm trung bình cao hơn?}
+
+Australia and New Zealand là khu vực có điểm trung bình cao nhất năm 2019, tiếp theo là North America và Western Europe. Tuy nhiên, hai khu vực đầu tiên có số quốc gia rất ít, nên kết quả không được dùng để khẳng định mọi khu vực này có dân số hoặc điều kiện đồng đều.
+
+\subsection{Yếu tố nào liên hệ mạnh nhất với điểm hạnh phúc?}
+
+GDP bình quân đầu người và tuổi thọ khỏe mạnh có hai hệ số tương quan cao nhất. Điều này cho thấy quốc gia có điều kiện kinh tế và sức khỏe tốt thường đi cùng điểm hạnh phúc cao. Hào phóng có hệ số tương quan thấp hơn, nhưng kết quả không chứng minh rằng chỉ cần tăng GDP hoặc tuổi thọ là hạnh phúc sẽ tăng tương ứng.
+
+\section{Ràng buộc và hạn chế dữ liệu}
+
+Các chỉ số trong World Happiness Report được đo và tổng hợp theo từng năm. Khi hợp nhất dữ liệu từ nhiều năm, hệ thống chỉ phân tích các trường chung và không gộp các cột chỉ xuất hiện ở một vài báo cáo. Vì vậy, kết quả có thể không bao quát mọi trường của dữ liệu gốc.
+
+Các hạn chế khác gồm:
+
+\begin{itemize}
+    \item Khả năng so sánh bị ảnh hưởng bởi mẫu quốc gia thay đổi hoặc tên quốc gia khác nhau.
+    \item Trung bình khu vực có thể bị ảnh hưởng bởi kích thước mẫu của khu vực.
+    \item Thang đo của một số biến chỉ mang tính tương đối và không có ý nghĩa đơn vị kinh tế trực tiếp.
+    \item Bản đồ sử dụng tên quốc gia để ánh xạ; một số vùng lãnh thổ có thể không hiển thị nếu tên không khớp.
+\end{itemize}
+
+\section{Kiến nghị sử dụng sản phẩm}
+
+Dashboard phù hợp cho việc khảo sát tổng quát, so sánh các nhóm dữ liệu và hỗ trợ thảo luận học thuật. Khi sử dụng kết quả, người đọc nên ghi rõ năm, khu vực và số lượng quan sát. Các kết luận nên mô tả xu hướng quan sát thay vì khẳng định quan hệ nhân quả.
+
+Người dùng nên kết hợp bảng dữ liệu, biểu đồ và hệ số tương quan khi đánh giá một kết luận. Ví dụ, một khu vực có điểm trung bình cao có thể chỉ bao gồm ít quốc gia. Tương tự, một hệ số tương quan mạnh không loại trừ khả năng còn có các biến khác ảnh hưởng đến hạnh phúc.
+
+\section{Phân tích chi tiết từng trang dashboard}
+
+\subsection{Trang Overview}
+
+Trang Overview là điểm bắt đầu cho việc quan sát dữ liệu theo năm. Người dùng có thể chọn năm, xem bản đồ và lọc theo khu vực. Các thẻ số liệu cung cấp thông tin nhanh cho năm đang xem. Bảng dữ liệu giữ chức năng tra cứu chi tiết để người đọc có thể đối chiếu tên quốc gia, thứ hạng và điểm hạnh phúc.
+
+\subsection{Trang Trends}
+
+Trang Trends giải quyết câu hỏi theo thời gian. Biểu đồ đường thể hiện trung bình của một chỉ số theo năm, trong khi biểu đồ phân tán cho phép quan sát từng quốc gia. Lựa chọn GDP hoặc tuổi thọ trên trục ngang cũng làm thay đổi hệ số tương quan tương ứng.
+
+\subsection{Trang Regional Analysis}
+
+Trang Regional Analysis tách dữ liệu theo khu vực. Biểu đồ cột cho phép so sánh nhanh điểm trung bình năm được chọn. Phần so sánh quốc gia tiếp tục theo dõi thay đổi qua nhiều năm nên có thể nhận ra quốc gia tăng, giảm hoặc dao động.
+
+\subsection{Trang Key Factors}
+
+Trang Key Factors tập trung vào quan hệ tuyến tính giữa các yếu tố. Heatmap cung cấp cái nhìn tổng quát, bảng hệ số hỗ trợ tra cứu từng cặp và pairplot giúp quan sát phân bố từng cặp biến. Trang này phù hợp cho câu hỏi ``yếu tố nào liên hệ mạnh nhất với điểm hạnh phúc''.
+
+\subsection{Trang Advanced Insights}
+
+Trang Advanced Insights cho phép kết hợp nhiều loại bộ lọc. Tab khám phá hỗ trợ quan sát phân tán và top quốc gia, tab so sánh theo dõi tối đa tám quốc gia, tab yếu tố tổng hợp tương quan trong phạm vi lọc. Bố cục này đáp ứng nhu cầu khám phá dữ liệu có điều kiện thay vì chỉ xem thống kê toàn tập.
+
+\section{Giá trị học tập và ứng dụng}
+
+Trong quá trình thực hiện, nhóm đã vận dụng các kỹ năng đọc dữ liệu từ tệp CSV, làm sạch dữ liệu, chuẩn hóa tên trường, tính toán thống kê mô tả, tính tương quan và xây dựng dashboard. Nhóm cũng rèn luyện khả năng chuyển yêu cầu phân tích thành câu hỏi dữ liệu, sau đó chuyển câu hỏi thành biểu đồ hoặc bộ lọc.
+
+Về mặt ứng dụng, sản phẩm có thể hỗ trợ học tập thống kê, bài thuyết trình khoa học hoặc nội dung tra cứu hạnh phúc toàn cầu. Dashboard không thay thế báo cáo chính thức, nhưng có thể giúp người xem tiếp cận dữ liệu một cách trực quan và kiểm tra các nhận xét bằng số liệu.
+
+\section{Đánh giá mức độ đáp ứng yêu cầu}
+
+Dựa trên các tiêu chí đề ra ở Chương 1, ứng dụng đã đáp ứng phần lớn yêu cầu chức năng. Dữ liệu được nạp từ năm tệp CSV, được chuẩn hóa và tái sử dụng cho nhiều trang. Các trang chính hỗ trợ lọc theo năm, khu vực, quốc gia và khoảng điểm. Các biểu đồ được sinh từ dữ liệu đã lọc nên kết quả thống kê và trực quan có cùng phạm vi quan sát.
+
+Về yêu cầu phi chức năng, giao diện sử dụng bố cục thống nhất, điều hướng rõ ràng và cỡ chữ đủ để đọc trên trang báo cáo. Các biểu đồ Plotly hỗ trợ tương tác và hiển thị thông tin chi tiết. Tuy nhiên, ứng dụng chưa có cơ chế kiểm thử giao diện tự động hoặc đồng bộ dữ liệu tự động với các báo cáo mới; đây là phần có thể triển khai trong các phiên bản tiếp theo.
+
+\section{Ranh giới kết luận của đề tài}
+
+Bản báo cáo không lập luận rằng các yếu tố kinh tế hoặc xã hội là nguyên nhân duy nhất tạo nên hạnh phúc. Các kết quả tương quan phản ánh quan hệ trong dữ liệu quan sát giai đoạn 2015--2019. Mỗi quốc gia là một quan sát tổng hợp và có thể chịu nhiều biến số ngoài dữ liệu dashboard.
+
+Do đó, kết luận được trình bày theo ba mức độ. Mức mô tả nêu số liệu đã quan sát. Mức so sánh nêu điểm trung bình hoặc thứ hạng của các năm, khu vực và quốc gia. Mức giải thích chỉ đề cập đến khả năng liên hệ tuyến tính và nhấn mạnh rằng kết quả tương quan không đủ để xác nhận nhân quả.

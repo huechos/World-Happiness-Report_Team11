@@ -13,6 +13,7 @@ import streamlit as st
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+# Tên cột chuẩn được dùng trong xử lý; nhãn tiếng Việt chỉ dùng khi hiển thị.
 METRIC_LABELS = {
     "Happiness Score": "Điểm hạnh phúc",
     "GDP per capita": "GDP bình quân đầu người",
@@ -40,6 +41,7 @@ st.markdown(
 def load_all_years(data_dir: str) -> pd.DataFrame:
     """Nạp và chuẩn hóa các file CSV theo năm thành một DataFrame duy nhất."""
     data_path = Path(data_dir)
+    # Chỉ đọc các CSV có tên là năm để bỏ qua những file dữ liệu không liên quan.
     year_files = sorted(
         (
             (int(path.stem), path)
@@ -56,12 +58,14 @@ def load_all_years(data_dir: str) -> pd.DataFrame:
         frame = pd.read_csv(path)
         column_mapping = {}
         for column in frame.columns:
+            # Bỏ dấu cách, dấu chấm và ký tự đặc biệt để nhận ra biến thể tên cột.
             normalized = re.sub(r"[^a-z0-9]", "", str(column).lower())
             canonical = COLUMN_ALIASES.get(normalized)
             if canonical and canonical not in frame.columns:
                 column_mapping[column] = canonical
         frame = frame.rename(columns=column_mapping)
 
+        # Báo lỗi sớm nếu file năm đó không có đủ dữ liệu để phân tích.
         required_columns = ["Country", *METRIC_LABELS]
         missing_columns = [column for column in required_columns if column not in frame.columns]
         if missing_columns:
@@ -69,11 +73,14 @@ def load_all_years(data_dir: str) -> pd.DataFrame:
                 f"{path.name} thiếu các cột cần thiết: {', '.join(missing_columns)}"
             )
 
+        # Gán năm theo tên file và đổi chỉ số sang số; giá trị không hợp lệ thành NaN.
         frame["Year"] = year
         for metric in METRIC_LABELS:
             frame[metric] = pd.to_numeric(frame[metric], errors="coerce")
+        # Giữ lại các trường cần thiết để bảng tổng hợp giữa các năm đồng nhất.
         frames.append(frame[["Year", "Country", *METRIC_LABELS]])
 
+    # Ghép từng năm thành một bảng dài để thuận tiện lọc và vẽ biểu đồ.
     return pd.concat(frames, ignore_index=True)
 
 
@@ -89,9 +96,11 @@ if not years:
     st.stop()
 
 st.subheader("Xu hướng trung bình theo năm")
-# Gom dữ liệu theo năm để tính giá trị trung bình của từng chỉ số.
+# Gom dữ liệu theo năm để tính trung bình của mỗi chỉ số trên các quốc gia có dữ liệu.
 yearly_means = data.groupby("Year", as_index=False)[list(METRIC_LABELS)].mean()
+# Dùng chỉ số năm để truy xuất nhanh số liệu của năm đầu và năm cuối bên dưới.
 yearly_means_by_year = yearly_means.set_index("Year")
+# Chuyển bảng từ mỗi chỉ số một cột sang mỗi chỉ số một dòng cho Plotly.
 trend_data = yearly_means.melt(
     id_vars="Year",
     value_vars=list(METRIC_LABELS),
@@ -100,6 +109,7 @@ trend_data = yearly_means.melt(
 )
 trend_data["Chỉ số"] = trend_data["Metric"].map(METRIC_LABELS)
 
+# Mỗi chỉ số nằm ở một ô riêng vì các đại lượng có thang đo khác nhau.
 trend_figure = px.line(
     trend_data,
     x="Year",
@@ -112,6 +122,7 @@ trend_figure = px.line(
     labels={"Year": "Năm", "Average": "Giá trị trung bình"},
     title="Điểm hạnh phúc, GDP và tuổi thọ khỏe mạnh",
 )
+# Không ép các ô dùng chung thang Y để thấy rõ biến động của từng chỉ số.
 trend_figure.update_yaxes(matches=None, showticklabels=True)
 trend_figure.update_xaxes(dtick=1)
 trend_figure.update_layout(
@@ -148,6 +159,7 @@ happiness_area = px.area(
     title="Điểm hạnh phúc trung bình qua các năm",
     color_discrete_sequence=["#4E79A7"],
 )
+# Tô vùng dưới đường, đánh dấu và ghi nhãn giá trị để dễ đọc từng năm.
 happiness_area.update_traces(
     mode="lines+markers+text",
     fill="tozeroy",
@@ -162,6 +174,7 @@ happiness_area.update_traces(
         "<extra></extra>"
     ),
 )
+# Hiển thị đủ từng năm; trục Y bắt đầu từ 5 nên cần lưu ý khi diễn giải độ dốc.
 happiness_area.update_xaxes(
     type="linear",
     tickmode="array",
@@ -197,6 +210,7 @@ st.subheader("Tương quan giữa các chỉ số")
 # Cho phép người dùng chọn trục X và năm trước khi vẽ scatter plot.
 control_col, year_col = st.columns(2)
 with control_col:
+    # Chỉ dùng GDP và tuổi thọ làm biến giải thích, tránh so điểm hạnh phúc với chính nó.
     scatter_metrics = [
         metric for metric in METRIC_LABELS if metric != "Happiness Score"
     ]
@@ -212,12 +226,15 @@ with year_col:
 
 scatter_data = data
 if selected_year != "Tất cả năm":
+    # Nếu chọn năm cụ thể, chỉ giữ dữ liệu của năm đó trước khi tính tương quan.
     scatter_data = scatter_data[scatter_data["Year"] == selected_year]
+# Scatter plot và Pearson chỉ dùng các dòng có đủ cả hai chỉ số.
 scatter_data = scatter_data.dropna(subset=[x_metric, "Happiness Score"])
 
 if scatter_data.empty:
     st.warning("Không có đủ dữ liệu để vẽ biểu đồ tương quan với lựa chọn hiện tại.")
 else:
+    # Mỗi điểm biểu diễn một quốc gia; màu sắc phân biệt năm trong lựa chọn nhiều năm.
     scatter_figure = px.scatter(
         scatter_data,
         x=x_metric,
@@ -239,6 +256,7 @@ else:
     scatter_figure.update_layout(height=520)
     st.plotly_chart(scatter_figure, use_container_width=True)
 
+    # Pearson đo mức độ và chiều của liên hệ tuyến tính trong dữ liệu đang lọc.
     correlation = scatter_data[x_metric].corr(scatter_data["Happiness Score"])
     if pd.isna(correlation):
         st.caption("Không thể tính hệ số tương quan từ các giá trị hiện có.")
@@ -252,6 +270,7 @@ else:
             correlation_strength = "khá nhẹ"
         else:
             correlation_strength = "khó nhận ra"
+        # Tính riêng từng năm để đặt kết quả gộp vào bối cảnh và so sánh độ ổn định.
         yearly_correlations = {}
         for year, year_data in data.groupby("Year"):
                 paired_values = year_data[[x_metric, "Happiness Score"]].dropna()
@@ -262,6 +281,7 @@ else:
         yearly_correlations = pd.Series(yearly_correlations).dropna()
 
         if correlation > 0:
+            # Diễn giải chiều liên hệ theo dấu hệ số, không khẳng định nhân quả.
             relationship_description = (
                     f"các quốc gia có {METRIC_LABELS[x_metric]} cao hơn thường "
                     "cũng có điểm hạnh phúc cao hơn"
@@ -277,6 +297,8 @@ else:
                     "cùng một xu hướng tăng hoặc giảm rõ rệt của điểm hạnh phúc"
             )
         if selected_year == "Tất cả năm":
+                # So sánh tương quan giữa các năm giúp phát hiện khi kết quả gộp che
+                # khuất sự thay đổi hoặc đảo chiều của mối liên hệ.
                 if yearly_correlations.empty:
                     year_comparison = (
                         "Chưa đủ dữ liệu theo từng năm để so sánh sự ổn định của "
@@ -311,6 +333,7 @@ else:
                     "năm."
                 )
         else:
+                # Đặt năm đang chọn cạnh các năm khác và kết quả gộp toàn giai đoạn.
                 selected_year_value = int(selected_year)
                 if selected_year_value in yearly_correlations.index:
                     selected_strength = abs(
